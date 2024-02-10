@@ -1,0 +1,4 @@
+gcc %c %h -std=c11 -Wall -Wextra
+-Isrc
+-Ithird-party
+-Iplatform
