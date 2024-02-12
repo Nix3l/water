@@ -6,8 +6,7 @@ static void glfw_error_callback(int error, const char* text) {
     LOG_ERR("GLFW ERROR [%d]: `%s`\n", error, text);
 }
 
-void create_window(u16 width, u16 height, char* title, arena_s* arena) {
-    ASSERT(game_state->window == NULL);
+void create_window(u16 width, u16 height, char* title) {
     ASSERT(glfwInit());
 
     // hint to opengl v3.3 core
@@ -15,20 +14,18 @@ void create_window(u16 width, u16 height, char* title, arena_s* arena) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    game_state->window = arena_push(arena, sizeof(window_s));
-    window_s* window = game_state->window;
-    window->width = width;
-    window->height = height;
-    window->title = title;
+    game_state->window.width = width;
+    game_state->window.height = height;
+    game_state->window.title = title;
 
-    window->glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
-    if(!window->glfw_window) {
+    game_state->window.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
+    if(!game_state->window.glfw_window) {
         glfwTerminate();
         LOG_ERR("could not create window!\n");
         ASSERT_BREAK(!window->window);
     }
 
-    glfwMakeContextCurrent(window->glfw_window);
+    glfwMakeContextCurrent(game_state->window.glfw_window);
 
     // load all the opengl functions from the drivers with glad
     ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
@@ -38,5 +35,5 @@ void create_window(u16 width, u16 height, char* title, arena_s* arena) {
 
 void destroy_window() {
     glfwTerminate();
-    glfwDestroyWindow(game_state->window->glfw_window);
+    glfwDestroyWindow(game_state->window.glfw_window);
 }

@@ -10,7 +10,7 @@ void init_imgui() {
     imgui_io = igGetIO();
 
     const char* glsl_ver = "#version 330 core";
-    ImGui_ImplGlfw_InitForOpenGL(game_state->window->glfw_window, true);
+    ImGui_ImplGlfw_InitForOpenGL(game_state->window.glfw_window, true);
     ImGui_ImplOpenGL3_Init(glsl_ver);
 
     igStyleColorsDark(NULL);

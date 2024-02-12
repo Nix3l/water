@@ -12,7 +12,7 @@ typedef struct {
     u16 height;
 } window_s;
 
-void create_window(u16 width, u16 height, char* title, arena_s* arena);
+void create_window(u16 width, u16 height, char* title);
 void destroy_window();
 
 #endif
