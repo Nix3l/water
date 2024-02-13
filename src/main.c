@@ -27,9 +27,25 @@ void init_game_state(u64 memory_to_allocate) {
 
     // GUI
     init_imgui();
+
+    float vertices[] = {
+         0.5f,  0.5f, 0.0f, // top right
+         0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f  // top left 
+    };
+
+    GLuint indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+
+    game_state->test_mesh = create_mesh(vertices, 12, indices, 6);
 }
 
 void terminate_game() {
+    destroy_mesh(&game_state->test_mesh);
+    
     shutdown_imgui();
     destroy_window();
 
@@ -40,7 +56,7 @@ int main(void) {
     init_game_state(GIGABYTES(1));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
-        glClear(GL_COLOR_BUFFER_BIT);
+        render_mesh(&game_state->test_mesh);
 
         update_imgui();
         render_imgui();
