@@ -26,22 +26,69 @@ static GLuint create_indices_vbo(GLuint* indices, int num_indices) {
     return vbo;
 }
 
-mesh_s create_mesh(float* vertex_data, int num_vertices, GLuint* indices, int num_indices) {
+mesh_s create_mesh(
+        float* vertex_data, float* uvs_data, float* normals_data, float* colors_data, 
+        GLuint* indices,
+        int num_indices, int num_vertices) {
     mesh_s mesh;
-    mesh.data = MESH_VERTICES;
+
+    // TODO(nix3l): name and full path
+
+    if(!vertex_data || num_vertices == 0) {
+        LOG_ERR("tried to load mesh without vertex data!\n");
+        return (mesh_s) {};
+    }
+
+    // TODO(nix3l): currently wasting memory on unloaded data
+
     mesh.vertices = vertex_data;
+    mesh.uvs = uvs_data;
+    mesh.normals = normals_data;
+    mesh.colors = colors_data;
     mesh.indices = indices;
+
+    mesh.data = MESH_VERTICES;
+    if(uvs_data) mesh.data |= MESH_UVS;
+    if(normals_data) mesh.data |= MESH_NORMALS;
+    if(colors_data) mesh.data |= MESH_COLORS;
 
     glGenVertexArrays(1, &mesh.vao);
     glBindVertexArray(mesh.vao);
 
-    mesh.vertices_vbo = create_vbo(0, 3, vertex_data, num_vertices);
+    mesh.vertices_vbo = create_vbo(MESH_ATTRIBUTE_VERTICES, 3, vertex_data, num_vertices);
+    mesh.uvs_vbo = create_vbo(MESH_ATTRIBUTE_UVS, 2, uvs_data, num_vertices);
+    mesh.normals_vbo = create_vbo(MESH_ATTRIBUTE_NORMALS, 3, normals_data, num_vertices);
+    mesh.colors_vbo = create_vbo(MESH_ATTRIBUTE_COLORS, 3, colors_data, num_vertices);
     mesh.indices_vbo = create_indices_vbo(indices, num_indices);
+
     mesh.index_count = num_indices;
+    mesh.vertex_count = num_vertices;
 
     glBindVertexArray(0);
 
     return mesh;
+}
+
+void mesh_enable_attributes(mesh_s* mesh) {
+    if(mesh->data & MESH_VERTICES)
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_VERTICES);
+    if(mesh->data & MESH_UVS)
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_UVS);
+    if(mesh->data & MESH_NORMALS)
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_NORMALS);
+    if(mesh->data & MESH_COLORS)
+        glEnableVertexAttribArray(MESH_ATTRIBUTE_COLORS);
+}
+
+void mesh_disable_attributes(mesh_s* mesh) {
+    if(mesh->data & MESH_VERTICES)
+        glDisableVertexAttribArray(MESH_ATTRIBUTE_VERTICES);
+    if(mesh->data & MESH_UVS)
+        glDisableVertexAttribArray(MESH_ATTRIBUTE_UVS);
+    if(mesh->data & MESH_NORMALS)
+        glDisableVertexAttribArray(MESH_ATTRIBUTE_NORMALS);
+    if(mesh->data & MESH_COLORS)
+        glDisableVertexAttribArray(MESH_ATTRIBUTE_COLORS);
 }
 
 void render_mesh(mesh_s* mesh) {
@@ -51,10 +98,11 @@ void render_mesh(mesh_s* mesh) {
     glViewport(0, 0, game_state->window.width, game_state->window.height);
 
     glBindVertexArray(mesh->vao);
-    glEnableVertexAttribArray(0);
+    mesh_enable_attributes(mesh);
 
     glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
+    mesh_disable_attributes(mesh);
     glDisableVertexAttribArray(0);
     glBindVertexArray(0);
 }

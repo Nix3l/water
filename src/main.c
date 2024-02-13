@@ -40,7 +40,7 @@ void init_game_state(u64 memory_to_allocate) {
         1, 2, 3  // second triangle
     };
 
-    game_state->test_mesh = create_mesh(vertices, 12, indices, 6);
+    game_state->test_mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
 }
 
 void terminate_game() {

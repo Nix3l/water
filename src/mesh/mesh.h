@@ -10,6 +10,13 @@ typedef enum {
     MESH_COLORS = 0x08,
 } mesh_data_flags_t;
 
+enum {
+    MESH_ATTRIBUTE_VERTICES = 0,
+    MESH_ATTRIBUTE_UVS = 1,
+    MESH_ATTRIBUTE_NORMALS = 2,
+    MESH_ATTRIBUTE_COLORS = 3,
+};
+
 typedef struct {
     // TODO(nix3l): arena for mesh memory
     // arena_s memory;
@@ -27,7 +34,9 @@ typedef struct {
     float* colors;
 
     GLuint* indices;
-    int index_count;
+
+    u32 index_count; // only for indices
+    u32 vertex_count; // same for all vertex data
 
     // opengl data
     GLuint vao;
@@ -40,7 +49,14 @@ typedef struct {
     GLuint indices_vbo;
 } mesh_s;
 
-mesh_s create_mesh(float* vertex_data, int num_vertices, GLuint* indices, int num_indices);
+mesh_s create_mesh(
+        float* vertex_data, float* uvs_data, float* normals_data, float* colors_data, 
+        GLuint* indices,
+        int num_indices, int num_vertices);
+
+void mesh_enable_attributes(mesh_s* mesh);
+void mesh_disable_attributes(mesh_s* mesh);
+
 void destroy_mesh(mesh_s* mesh);
 void render_mesh(mesh_s* mesh);
 
