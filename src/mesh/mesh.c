@@ -39,8 +39,6 @@ mesh_s create_mesh(
         return (mesh_s) {};
     }
 
-    // TODO(nix3l): currently wasting memory on unloaded data
-
     mesh.vertices = vertex_data;
     mesh.uvs = uvs_data;
     mesh.normals = normals_data;
@@ -56,9 +54,9 @@ mesh_s create_mesh(
     glBindVertexArray(mesh.vao);
 
     mesh.vertices_vbo = create_vbo(MESH_ATTRIBUTE_VERTICES, 3, vertex_data, num_vertices);
-    mesh.uvs_vbo = create_vbo(MESH_ATTRIBUTE_UVS, 2, uvs_data, num_vertices);
-    mesh.normals_vbo = create_vbo(MESH_ATTRIBUTE_NORMALS, 3, normals_data, num_vertices);
-    mesh.colors_vbo = create_vbo(MESH_ATTRIBUTE_COLORS, 3, colors_data, num_vertices);
+    mesh.uvs_vbo = uvs_data ? create_vbo(MESH_ATTRIBUTE_UVS, 2, uvs_data, num_vertices) : 0;
+    mesh.normals_vbo = normals_data ? create_vbo(MESH_ATTRIBUTE_NORMALS, 3, normals_data, num_vertices) : 0;
+    mesh.colors_vbo = colors_data ? create_vbo(MESH_ATTRIBUTE_COLORS, 3, colors_data, num_vertices) : 0;
     mesh.indices_vbo = create_indices_vbo(indices, num_indices);
 
     mesh.index_count = num_indices;

@@ -17,7 +17,7 @@
 // according to facebook 1.5 is the optimum number
 #define GROWTH_FACTOR (1.5f)
 
-vector_s create_vector() {
+vector_s vector_create() {
     vector_s vec;
     vec.size = 0;
     vec.capacity = VECTOR_INIT_CAPACITY;
@@ -70,7 +70,24 @@ void vector_set(vector_s* vec, usize index, void* new_data) {
         return;
     }
 
-    if(new_data == NULL) LOG_WARN("setting vector element to null\n");
+    // if(new_data == NULL) LOG_WARN("setting vector element to null\n");
+
+    vec->data[index] = new_data;
+}
+
+void vector_insert(vector_s* vec, usize index, void* new_data) {
+    ASSERT(vec);
+
+    if(index >= vec->size) {
+        LOG_ERR("index out of bounds!\n");
+        return;
+    }
+
+    if(++vec->size >= vec->capacity)
+        vector_resize(vec, (usize)ceil(vec->capacity * GROWTH_FACTOR));
+
+    for(usize i = vec->size; i > index; i --)
+        vec->data[i] = vec->data[i - 1];
 
     vec->data[index] = new_data;
 }

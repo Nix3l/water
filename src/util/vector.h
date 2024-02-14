@@ -15,7 +15,9 @@ typedef struct {
 vector_s vector_create();
 
 void* vector_get(vector_s* vec, usize index);
+
 void vector_set(vector_s* vec, usize index, void* data);
+void vector_insert(vector_s* vec, usize index, void* data);
 
 void vector_add(vector_s* vec, void* data);
 void vector_remove(vector_s* vec, usize index);

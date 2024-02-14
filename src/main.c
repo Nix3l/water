@@ -1,5 +1,7 @@
 // CURRENT:
-// TODO(nix3l): start with the basic renderer
+// TODO(nix3l): continue figuring out this memory model.
+// more specifically how to do dynamic arrays/arenas
+// TODO(nix3l): start with shaders (see shader.h)
 
 #include "game.h"
 #include "util/log.h"

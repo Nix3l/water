@@ -12,14 +12,14 @@
 #   define ASSERT(_x)
 #endif
 
-#define ARRAY_SIZE(_arr) (sizeof((_arr))/(sizeof(*(_arr)))
+#define ARRAY_SIZE(_arr) (sizeof((_arr))/(sizeof(*(_arr))))
 
 #define KILOBYTES(_x) (1024*(_x))
 #define MEGABYTES(_x) (1024*KILOBYTES((_x)))
 #define GIGABYTES(_x) (1024*MEGABYTES((_x)))
 
 // NOTE(nix3l): might be useful for ecs later on
-#define INT_FROM_PTR(_ptr) (unsigned long long)((char*)p-(char*)0)
+#define INT_FROM_PTR(_ptr) (unsigned long long)((char*)_ptr-(char*)0)
 #define PTR_FROM_INT(_int) (void*)((char*)0 + (_int))
 
 // very interesting, gives the abstract representation of a member of a struct so to speak
