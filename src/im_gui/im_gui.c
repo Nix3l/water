@@ -2,6 +2,7 @@
 
 #include "game.h"
 
+// TODO(nix3l): move these to the game_state struct
 static struct ImGuiContext* imgui_ctx;
 static struct ImGuiIO* imgui_io;
 
@@ -9,9 +10,8 @@ void init_imgui() {
     imgui_ctx = igCreateContext(NULL);
     imgui_io = igGetIO();
 
-    const char* glsl_ver = "#version 330 core";
     ImGui_ImplGlfw_InitForOpenGL(game_state->window.glfw_window, true);
-    ImGui_ImplOpenGL3_Init(glsl_ver);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
 
     igStyleColorsDark(NULL);
 }

@@ -4,6 +4,7 @@
 #include "base.h"
 
 typedef enum {
+    MESH_NONE = 0x00,
     MESH_VERTICES = 0x01,
     MESH_UVS = 0x02,
     MESH_NORMALS = 0x04,
@@ -18,9 +19,6 @@ enum {
 };
 
 typedef struct {
-    // TODO(nix3l): arena for mesh memory
-    // arena_s memory;
-
     // metadata
     char* name;
     char* full_path;

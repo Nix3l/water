@@ -25,7 +25,7 @@ arena_s arena_create_in_block(void* data, usize capacity) {
     return (arena_s) {
         .capacity = capacity,
         .size = 0,
-        .data = mem_alloc(sizeof(u8) * capacity),
+        .data = data,
         .expandable = false
     };
 }

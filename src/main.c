@@ -1,6 +1,6 @@
 // CURRENT:
 // TODO(nix3l): continue figuring out this memory model.
-// more specifically how to do dynamic arrays/arenas
+// more specifically how to do dynamic arrays
 // TODO(nix3l): start with shaders (see shader.h)
 
 #include "game.h"
@@ -15,13 +15,29 @@
 #include "io/input.h"
 #include "im_gui/im_gui.h"
 
+game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
 
-void init_game_state(u64 memory_to_allocate) {
-    ASSERT(sizeof(game_state_s) < memory_to_allocate);
+static void init_game_state(usize permenant_memory_to_allocate, usize transient_memory_to_allocate) {
+    ASSERT(sizeof(game_state_s) < permenant_memory_to_allocate);
 
-    game_state = mem_alloc(memory_to_allocate);
+    // TODO(nix3l): check for allocation failure
+    game_memory = mem_alloc(sizeof(game_memory_s));
+    game_memory->permenant_storage_size = permenant_memory_to_allocate;
+    game_memory->permenant_storage = mem_alloc(permenant_memory_to_allocate);
+    MEM_ZERO(game_memory->permenant_storage, game_memory->permenant_storage_size);
+    game_memory->transient_storage_size = transient_memory_to_allocate;
+    game_memory->transient_storage = mem_alloc(transient_memory_to_allocate);
+    MEM_ZERO(game_memory->transient_storage, game_memory->transient_storage_size);
+
+
+    // PARTITIONING MEMORY
+    game_state = game_memory->permenant_storage;
     MEM_ZERO_STRUCT(game_state);
+
+    // NOTE(nix3l): for now just give the rest of the memory (that isnt used by game_state) for the next arena
+    // later on we should partition the memory for each system accordingly
+    game_state->shader_arena = arena_create_in_block(game_memory->permenant_storage + sizeof(game_state_s), permenant_memory_to_allocate - sizeof(game_state_s));
 
     // IO
     create_window(1280, 720, "test");
@@ -43,19 +59,25 @@ void init_game_state(u64 memory_to_allocate) {
     };
 
     game_state->test_mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
+
+    char* vertex_src = platform_load_text_from_file("shader/forward_vs.glsl", &game_state->shader_arena);
+    char* fragment_src = platform_load_text_from_file("shader/forward_fs.glsl", &game_state->shader_arena);
+
+    LOG("vertex_src:\n%s\n\nfragment_src:\n%s\n", vertex_src, fragment_src);
 }
 
-void terminate_game() {
+static void terminate_game() {
     destroy_mesh(&game_state->test_mesh);
     
     shutdown_imgui();
     destroy_window();
 
-    mem_free(game_state);
+    mem_free(game_memory->permenant_storage);
+    mem_free(game_memory);
 }
 
 int main(void) {
-    init_game_state(GIGABYTES(1));
+    init_game_state(GIGABYTES(1), KILOBYTES(64));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
         render_mesh(&game_state->test_mesh);

@@ -23,6 +23,7 @@ void init_input();
 void update_input();
 
 // NOTE(nix3l): these could technically be macros which might be a tiny bit faster
+// although compiler optimisation might do all the effort for me so eh who cares
 
 // return if a key is held
 bool is_key_down(int key);
