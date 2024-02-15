@@ -24,7 +24,11 @@ static GLuint compile_shader(char* src_code, GLuint shader_type) {
     return id;
 }
 
-shader_s create_shader(char* filename, char* vertex_src, char* fragment_src, void (*bind_attributes) ()) {
+shader_s create_shader(
+        char* filename,
+        char* vertex_src, char* fragment_src,
+        void (*bind_attributes) (),
+        void (*load_uniforms) (void*)) {
     shader_s shader;
 
     shader.name = filename;
@@ -71,12 +75,16 @@ shader_s create_shader(char* filename, char* vertex_src, char* fragment_src, voi
     return shader;
 }
 
-shader_s load_and_create_shader(char* name, char* vertex_path, char* fragment_path, void (*bind_attributes) ()) {
+shader_s load_and_create_shader(
+        char* name,
+        char* vertex_path, char* fragment_path,
+        void (*bind_attributes) (),
+        void (*load_uniforms) (void*)) {
     usize vertex_length, fragment_length;
     char* vertex_src = platform_load_text_from_file(vertex_path, &vertex_length, &game_state->shader_arena);
     char* fragment_src = platform_load_text_from_file(fragment_path, &fragment_length, &game_state->shader_arena);
-    
-    shader_s shader = create_shader(name, vertex_src, fragment_src, bind_attributes);
+
+    shader_s shader = create_shader(name, vertex_src, fragment_src, bind_attributes, load_uniforms);
     shader.vertex_full_path = vertex_path;
     shader.fragment_full_path = fragment_path;
 
@@ -95,4 +103,36 @@ void shader_start(shader_s* shader) {
 
 void shader_stop() {
     glUseProgram(0);
+}
+
+void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_name) {
+    glBindAttribLocation(shader->program_id, attribute, attribute_name);
+}
+
+GLuint shader_get_uniform(shader_s* shader, char* uniform_name) {
+    return glGetUniformLocation(shader->program_id, uniform_name);        
+}
+  
+void shader_load_int(GLuint uniform, u32 value) {
+    glUniform1i(uniform, value);
+}
+
+void shader_load_float(GLuint uniform, f32 value) {
+    glUniform1f(uniform, value);
+}
+
+void shader_load_bool(GLuint uniform, bool value) {
+    glUniform1i(uniform, value ? 1 : 0);
+}
+
+void shader_load_vec2(GLuint uniform, vec2s value) {
+    glUniform2f(uniform, value.x, value.y);
+}
+
+void shader_load_vec3(GLuint uniform, vec3s value) {
+    glUniform3f(uniform, value.x, value.y, value.z);
+}
+
+void shader_load_mat4(GLuint uniform, mat4s value) {
+    glUniformMatrix4fv(uniform, 1, GL_FALSE, (float*) value.raw);
 }

@@ -3,6 +3,8 @@
 
 #include "base.h"
 
+#include "im_gui/im_gui.h"
+
 #include "memory/memory.h"
 #include "io/window.h"
 #include "io/input.h"
@@ -27,6 +29,10 @@ typedef struct {
     // SHADERS
     arena_s shader_arena;
     shader_s forward_shader;
+
+    // IMGUI
+    struct ImGuiContext* imgui_ctx;
+    struct ImGuiIO* imgui_io;
 
     // OTHER
     mesh_s test_mesh;

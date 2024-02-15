@@ -95,18 +95,22 @@ void render_mesh(mesh_s* mesh) {
 
     glViewport(0, 0, game_state->window.width, game_state->window.height);
 
+    shader_start(&game_state->forward_shader);
+
+    game_state->forward_shader.load_uniforms(NULL);
+
     glBindVertexArray(mesh->vao);
     mesh_enable_attributes(mesh);
 
     glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
 
     mesh_disable_attributes(mesh);
-    glDisableVertexAttribArray(0);
     glBindVertexArray(0);
+
+    shader_stop();
 }
 
 void destroy_mesh(mesh_s* mesh) {
-    // TODO(nix3l): free mesh memory
     glDeleteBuffers(1, &mesh->vertices_vbo);
     glDeleteBuffers(1, &mesh->uvs_vbo);
     glDeleteBuffers(1, &mesh->normals_vbo);

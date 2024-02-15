@@ -4,7 +4,9 @@
 #include "util/log.h"
 
 static void bind_attributes() {
-    LOG("binding the attributes for forward shader\n");
+    shader_s* shader = &game_state->forward_shader;
+    shader_bind_attribute(shader, 0, "vs_position");
+    shader_bind_attribute(shader, 1, "vs_uvs");
 };
 
 void init_forward_shader() {

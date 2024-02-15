@@ -1,7 +1,5 @@
 // CURRENT:
-// TODO(nix3l): continue figuring out this memory model.
-// more specifically how to do dynamic arrays
-// TODO(nix3l): start with shaders (see shader.h)
+// TODO(nix3l): handling uniform storage in shaders
 
 #include "game.h"
 #include "util/log.h"
@@ -24,11 +22,16 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     // TODO(nix3l): check for allocation failure
     game_memory = mem_alloc(sizeof(game_memory_s));
+    ASSERT(game_memory);
+
     game_memory->permenant_storage_size = permenant_memory_to_allocate;
     game_memory->permenant_storage = mem_alloc(permenant_memory_to_allocate);
+    ASSERT(game_memory->permenant_storage);
     MEM_ZERO(game_memory->permenant_storage, game_memory->permenant_storage_size);
+    
     game_memory->transient_storage_size = transient_memory_to_allocate;
     game_memory->transient_storage = mem_alloc(transient_memory_to_allocate);
+    ASSERT(game_memory->transient_storage);
     MEM_ZERO(game_memory->transient_storage, game_memory->transient_storage_size);
 
     // PARTITIONING MEMORY
@@ -46,6 +49,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // GUI
     init_imgui();
 
+    // SHADERS
     init_forward_shader();
 
     float vertices[] = {

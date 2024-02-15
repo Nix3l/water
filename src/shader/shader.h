@@ -16,16 +16,36 @@ typedef struct {
     GLuint vertex_id;
     GLuint fragment_id;
 
-    // TODO(nix3l): UNIFORMS
+    void (*load_uniforms) (void*);
 } shader_s;
 
-shader_s create_shader(char* name, char* vertex_src, char* fragment_src, void (*bind_attributes) ());
-shader_s load_and_create_shader(char* name, char* vertex_path, char* fragment_path, void (*bind_attributes) ());
+// takes in source code and compiles a shader accordingly
+shader_s create_shader(
+        char* name,
+        char* vertex_src, char* fragment_src,
+        void (*bind_attributes) (),
+        void (*load_uniforms) (void*));
+
+// takes in file paths on disk and compiles a shader accordingly
+shader_s load_and_create_shader(
+        char* name,
+        char* vertex_path, char* fragment_path,
+        void (*bind_attributes) (),
+        void (*load_uniforms) (void*));
+
 void destroy_shader(shader_s* shader);
 
 void shader_start(shader_s* shader);
 void shader_stop();
 
-GLuint load_uniform(shader_s* shader, char* uniform_name);
+void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_name);
+
+GLuint shader_get_uniform(shader_s* shader, char* uniform_name);
+void shader_load_int(GLuint uniform, u32 value);
+void shader_load_float(GLuint uniform, f32 value);
+void shader_load_bool(GLuint uniform, bool value);
+void shader_load_vec2(GLuint uniform, vec2s value);
+void shader_load_vec3(GLuint uniform, vec3s value);
+void shader_load_mat4(GLuint uniform, mat4s value);
 
 #endif
