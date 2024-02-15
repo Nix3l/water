@@ -16,13 +16,11 @@ typedef struct {
     GLuint vertex_id;
     GLuint fragment_id;
 
+    // TODO(nix3l): UNIFORMS
 } shader_s;
 
-// TODO UNIFORMS
-
 shader_s create_shader(char* name, char* vertex_src, char* fragment_src, void (*bind_attributes) ());
-// TODO(nix3l): implement file io on the platform layer so this can be used
-shader_s load_and_create_shader(char* name, char* vertex_path, char* fragment_path);
+shader_s load_and_create_shader(char* name, char* vertex_path, char* fragment_path, void (*bind_attributes) ());
 void destroy_shader(shader_s* shader);
 
 void shader_start(shader_s* shader);

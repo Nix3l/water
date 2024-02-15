@@ -2,6 +2,7 @@
 
 #include "game.h"
 #include "util/log.h"
+#include "platform/platform.h"
 
 static GLuint compile_shader(char* src_code, GLuint shader_type) {
     GLuint id = glCreateShader(shader_type);
@@ -38,7 +39,7 @@ shader_s create_shader(char* filename, char* vertex_src, char* fragment_src, voi
     shader.fragment_id = compile_shader(fragment_src, GL_FRAGMENT_SHADER);
     glAttachShader(shader.program_id, shader.fragment_id);
 
-    bind_attributes();
+    if(bind_attributes) bind_attributes();
 
     glLinkProgram(shader.program_id);
     glValidateProgram(shader.program_id);
@@ -66,6 +67,20 @@ shader_s create_shader(char* filename, char* vertex_src, char* fragment_src, voi
 
     glDeleteShader(shader.vertex_id);
     glDeleteShader(shader.fragment_id);
+
+    return shader;
+}
+
+shader_s load_and_create_shader(char* name, char* vertex_path, char* fragment_path, void (*bind_attributes) ()) {
+    usize vertex_length, fragment_length;
+    char* vertex_src = platform_load_text_from_file(vertex_path, &vertex_length, &game_state->shader_arena);
+    char* fragment_src = platform_load_text_from_file(fragment_path, &fragment_length, &game_state->shader_arena);
+    
+    shader_s shader = create_shader(name, vertex_src, fragment_src, bind_attributes);
+    shader.vertex_full_path = vertex_path;
+    shader.fragment_full_path = fragment_path;
+
+    arena_pop(&game_state->shader_arena, vertex_length + fragment_length);
 
     return shader;
 }

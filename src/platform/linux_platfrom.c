@@ -10,7 +10,7 @@
 // TODO(nix3l): redo this whole thing to somehow use the executable's absolute path
 // for now however i can do the hacky approach
 
-char* platform_load_text_from_file(char* filename, arena_s* arena) {
+char* platform_load_text_from_file(char* filename, usize* out_length, arena_s* arena) {
     char* temp = game_memory->transient_storage;
 
     FILE* file = fopen(filename, "rb");
@@ -37,7 +37,7 @@ char* platform_load_text_from_file(char* filename, arena_s* arena) {
         return NULL;
     }
 
-    MEM_ZERO(temp, length+1);
+    MEM_ZERO(temp, length + 1);
     usize read_length = fread(temp, 1, length, file);
     if(read_length != length) {
         LOG_ERR("failed to read contents of [%s]: err %d\n%s\n", filename, errno, strerror(errno));
@@ -48,6 +48,8 @@ char* platform_load_text_from_file(char* filename, arena_s* arena) {
     char* output = arena_push(arena, length + 1);
     strncpy(output, temp, length);
     output[length + 1] = '\0';
+
+    if(out_length) *out_length = length + 1;
 
     fclose(file);
     return output;

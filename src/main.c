@@ -14,6 +14,7 @@
 #include "io/window.h"
 #include "io/input.h"
 #include "im_gui/im_gui.h"
+#include "shader/forward_shader/forward_shader.h"
 
 game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
@@ -30,7 +31,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_memory->transient_storage = mem_alloc(transient_memory_to_allocate);
     MEM_ZERO(game_memory->transient_storage, game_memory->transient_storage_size);
 
-
     // PARTITIONING MEMORY
     game_state = game_memory->permenant_storage;
     MEM_ZERO_STRUCT(game_state);
@@ -46,6 +46,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // GUI
     init_imgui();
 
+    init_forward_shader();
+
     float vertices[] = {
          0.5f,  0.5f, 0.0f, // top right
          0.5f, -0.5f, 0.0f, // bottom right
@@ -59,11 +61,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     };
 
     game_state->test_mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
-
-    char* vertex_src = platform_load_text_from_file("shader/forward_vs.glsl", &game_state->shader_arena);
-    char* fragment_src = platform_load_text_from_file("shader/forward_fs.glsl", &game_state->shader_arena);
-
-    LOG("vertex_src:\n%s\n\nfragment_src:\n%s\n", vertex_src, fragment_src);
 }
 
 static void terminate_game() {

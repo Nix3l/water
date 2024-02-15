@@ -24,9 +24,11 @@ typedef struct {
     window_s window;
     input_state_s input_state;
 
+    // SHADERS
     arena_s shader_arena;
     shader_s forward_shader;
 
+    // OTHER
     mesh_s test_mesh;
 } game_state_s;
 

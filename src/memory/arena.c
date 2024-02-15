@@ -65,7 +65,7 @@ void* arena_push(arena_s* arena, usize size) {
 }
 
 void arena_pop(arena_s* arena, usize bytes) {
-    ASSERT(arena->size - bytes > 0);
+    ASSERT(arena->size >= bytes);
 
     if(arena->expandable && arena->size - bytes < arena->capacity * ARENA_GROWTH_FACTOR)
         shrink_arena(arena);
