@@ -27,7 +27,8 @@ typedef struct {
     input_state_s input_state;
 
     // SHADERS
-    arena_s shader_arena;
+    arena_s shader_arena; // mostly contains text for shader paths/names
+    shader_uniform_locations_s shader_uniforms_locations;
     shader_s forward_shader;
 
     // IMGUI

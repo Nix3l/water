@@ -19,6 +19,10 @@ typedef struct {
     void (*load_uniforms) (void*);
 } shader_s;
 
+typedef struct {
+    GLuint blue;
+} shader_uniform_locations_s;
+
 // takes in source code and compiles a shader accordingly
 shader_s create_shader(
         char* name,
@@ -40,7 +44,7 @@ void shader_stop();
 
 void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_name);
 
-GLuint shader_get_uniform(shader_s* shader, char* uniform_name);
+GLuint shader_get_uniform_location(shader_s* shader, char* uniform_name);
 void shader_load_int(GLuint uniform, u32 value);
 void shader_load_float(GLuint uniform, f32 value);
 void shader_load_bool(GLuint uniform, bool value);
