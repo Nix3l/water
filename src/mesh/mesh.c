@@ -89,27 +89,6 @@ void mesh_disable_attributes(mesh_s* mesh) {
         glDisableVertexAttribArray(MESH_ATTRIBUTE_COLORS);
 }
 
-void render_mesh(mesh_s* mesh) {
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glViewport(0, 0, game_state->window.width, game_state->window.height);
-
-    shader_start(&game_state->forward_shader);
-
-    game_state->forward_shader.load_uniforms(NULL);
-
-    glBindVertexArray(mesh->vao);
-    mesh_enable_attributes(mesh);
-
-    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_INT, 0);
-
-    mesh_disable_attributes(mesh);
-    glBindVertexArray(0);
-
-    shader_stop();
-}
-
 void destroy_mesh(mesh_s* mesh) {
     glDeleteBuffers(1, &mesh->vertices_vbo);
     glDeleteBuffers(1, &mesh->uvs_vbo);

@@ -10,6 +10,8 @@
 #include "io/input.h"
 #include "mesh/mesh.h"
 #include "shader/shader.h"
+#include "entity/entity.h"
+#include "render/renderer.h"
 
 typedef struct {
     usize permenant_storage_size;
@@ -28,15 +30,18 @@ typedef struct {
 
     // SHADERS
     arena_s shader_arena; // mostly contains text for shader paths/names
-    shader_uniform_locations_s shader_uniforms_locations;
+    shader_uniform_locations_s shader_uniforms;
     shader_s forward_shader;
+
+    // RENDERER
+    forward_renderer_s forward_renderer;
 
     // IMGUI
     struct ImGuiContext* imgui_ctx;
     struct ImGuiIO* imgui_io;
 
     // OTHER
-    mesh_s test_mesh;
+    entity_s test_entity;
 } game_state_s;
 
 extern game_memory_s* game_memory;

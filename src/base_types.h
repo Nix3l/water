@@ -32,4 +32,7 @@ typedef ivec4s   v4i;
 #define MAX_u32 ((u32) 0xffffff)
 #define MAX_u64 ((u64) 0xffffffffffffffffllu)
 
+#define MAX_f32 (FLT_MAX)
+#define MAX_f64 (DBL_MAX)
+
 #endif

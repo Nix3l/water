@@ -19,8 +19,12 @@ typedef struct {
     void (*load_uniforms) (void*);
 } shader_s;
 
+// NOTE(nix3l): in case i ever make enough shaders that managin this struct becomes tedious
+// i can always split it into separate structs
+// to make it a bit more tidy but i doubt i would ever get to that point
 typedef struct {
-    GLuint blue;
+    // FORWARD SHADER
+    GLuint forward_transformation;
 } shader_uniform_locations_s;
 
 // takes in source code and compiles a shader accordingly

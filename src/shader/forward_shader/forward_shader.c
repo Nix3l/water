@@ -9,7 +9,8 @@ static void bind_attributes() {
 };
 
 static void load_uniforms(void* data) {
-    shader_load_float(game_state->shader_uniforms_locations.blue, 0.0);
+    entity_s* entity = data;
+    shader_load_mat4(game_state->shader_uniforms.forward_transformation, entity_transformation_matrix(entity));
 }
 
 void init_forward_shader() {
@@ -21,5 +22,5 @@ void init_forward_shader() {
             load_uniforms
         );
 
-    game_state->shader_uniforms_locations.blue = shader_get_uniform_location(&game_state->forward_shader, "blue");
+    game_state->shader_uniforms.forward_transformation = shader_get_uniform_location(&game_state->forward_shader, "transformation");
 }

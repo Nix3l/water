@@ -40,4 +40,19 @@
 #define MEM_ZERO_STRUCT(_ptr) MEM_ZERO(_ptr, sizeof(*(_ptr)))
 #define MEM_ZERO_ARRAY(_ptr) MEM_ZERO(_ptr, sizeof((_ptr)))
 
+#define VECTOR_2(_x, _y) (v2f) { .x = (_x), .y = (_y) }
+#define VECTOR_3(_x, _y, _z) (v3f) { .x = (_x), .y = (_y), .z = (_z) }
+#define VECTOR_4(_x, _y, _z, _w) (v4f) { .x = (_x), .y = (_y), .z = (_z), .w = (_w) }
+
+#define VECTOR_2_ZERO() VECTOR_2(0.0f, 0.0f)
+#define VECTOR_3_ZERO() VECTOR_3(0.0f, 0.0f, 0.0f)
+#define VECTOR_4_ZERO() VECTOR_4(0.0f, 0.0f, 0.0f, 0.0f)
+
+#define VECTOR_2_ONE() VECTOR_2(1.0f, 1.0f)
+#define VECTOR_3_ONE() VECTOR_3(1.0f, 1.0f, 1.0f)
+#define VECTOR_4_ONE() VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f)
+
+#define MAT3_IDENTITY (glms_mat3_identity())
+#define MAT4_IDENTITY (glms_mat4_identity())
+
 #endif

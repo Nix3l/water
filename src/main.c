@@ -1,5 +1,4 @@
 // CURRENT:
-// TODO(nix3l): handling uniform storage in shaders
 
 #include "game.h"
 #include "util/log.h"
@@ -52,6 +51,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
+    // RENDERER
+    init_forward_renderer();
+
     float vertices[] = {
          0.5f,  0.5f, 0.0f, // top right
          0.5f, -0.5f, 0.0f, // bottom right
@@ -64,11 +66,18 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         1, 2, 3  // second triangle
     };
 
-    game_state->test_mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
+    game_state->test_entity.mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
+    game_state->test_entity.transform = (transform_s) {
+        .position = VECTOR_3_ZERO(),
+        .rotation = VECTOR_3_ZERO(),
+        .scale = VECTOR_3_ONE()
+    };
 }
 
 static void terminate_game() {
-    destroy_mesh(&game_state->test_mesh);
+    destroy_mesh(&game_state->test_entity.mesh);
+
+    destroy_shader(&game_state->forward_shader);
     
     shutdown_imgui();
     destroy_window();
@@ -81,9 +90,22 @@ int main(void) {
     init_game_state(GIGABYTES(1), KILOBYTES(64));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
-        render_mesh(&game_state->test_mesh);
+        render_forward(&game_state->test_entity);
 
         update_imgui();
+
+        igBegin("entity", NULL, ImGuiWindowFlags_None);
+        igDragFloat3("position",
+                game_state->test_entity.transform.position.raw, 
+                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat3("rotation",
+                game_state->test_entity.transform.rotation.raw, 
+                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat3("scale",
+                game_state->test_entity.transform.scale.raw, 
+                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+        igEnd();
+
         render_imgui();
 
         glfwSwapBuffers(game_state->window.glfw_window);

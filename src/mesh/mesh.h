@@ -56,6 +56,5 @@ void mesh_enable_attributes(mesh_s* mesh);
 void mesh_disable_attributes(mesh_s* mesh);
 
 void destroy_mesh(mesh_s* mesh);
-void render_mesh(mesh_s* mesh);
 
 #endif

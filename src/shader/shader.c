@@ -111,7 +111,12 @@ void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_n
 }
 
 GLuint shader_get_uniform_location(shader_s* shader, char* uniform_name) {
-    return glGetUniformLocation(shader->program_id, uniform_name);        
+    GLuint id = glGetUniformLocation(shader->program_id, uniform_name);
+    
+    if(id == (GLuint)-1)
+        LOG_ERR("couldnt load uniform with name [%s] in shader [%s]\n", uniform_name, shader->name);
+
+    return id;
 }
   
 void shader_load_int(GLuint uniform, u32 value) {
