@@ -10,9 +10,13 @@ typedef struct {
     char* title;
     u16 width;
     u16 height;
+
+    bool cursor_hidden;
 } window_s;
 
 void create_window(u16 width, u16 height, char* title);
 void destroy_window();
+
+void window_set_cursor_visibility(window_s* window, bool visibility);
 
 #endif

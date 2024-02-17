@@ -1,4 +1,5 @@
 // CURRENT:
+// TODO(nix3l): make the camera movement good (see camera.c)
 
 #include "game.h"
 #include "util/log.h"
@@ -52,6 +53,14 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_forward_shader();
 
     // RENDERER
+    game_state->camera = (camera_s) {
+        .position   = VECTOR_3(0.0f, 0.0f, 0.0f),
+        .rotation   = VECTOR_3_ZERO(),
+        .fov        = 70.0f,
+        .near_plane = 0.001f,
+        .far_plane  = 1000.0f
+    };
+
     init_forward_renderer();
 
     float vertices[] = {
@@ -70,8 +79,10 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale = VECTOR_3_ONE()
+        .scale    = VECTOR_3_ONE()
     };
+
+    glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 }
 
 static void terminate_game() {
@@ -90,11 +101,15 @@ int main(void) {
     init_game_state(GIGABYTES(1), KILOBYTES(64));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
+        if(is_key_pressed(GLFW_KEY_ESCAPE))
+            window_set_cursor_visibility(&game_state->window, !game_state->window.cursor_hidden);
+
+        update_camera(&game_state->camera);
         render_forward(&game_state->test_entity);
 
         update_imgui();
 
-        igBegin("entity", NULL, ImGuiWindowFlags_None);
+        igBegin("debug", NULL, ImGuiWindowFlags_None);
         igDragFloat3("position",
                 game_state->test_entity.transform.position.raw, 
                 0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
@@ -103,6 +118,12 @@ int main(void) {
                 0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
         igDragFloat3("scale",
                 game_state->test_entity.transform.scale.raw, 
+                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat3("camera position",
+                game_state->camera.position.raw, 
+                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat3("camera rotation",
+                game_state->camera.rotation.raw, 
                 0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
         igEnd();
 

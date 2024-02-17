@@ -8,9 +8,9 @@
 // will implement in future engines if they end up using this code
 
 typedef struct {
-    vec3s position;
-    vec3s rotation;
-    vec3s scale;
+    v3f position;
+    v3f rotation;
+    v3f scale;
 } transform_s;
 
 typedef struct {

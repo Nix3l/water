@@ -18,6 +18,8 @@ void create_window(u16 width, u16 height, char* title) {
     game_state->window.height = height;
     game_state->window.title = title;
 
+    game_state->window.cursor_hidden = false;
+
     game_state->window.glfw_window = glfwCreateWindow(width, height, title, NULL, NULL);
     if(!game_state->window.glfw_window) {
         glfwTerminate();
@@ -31,6 +33,11 @@ void create_window(u16 width, u16 height, char* title) {
     ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
 
     glfwSetErrorCallback(glfw_error_callback);
+}
+
+void window_set_cursor_visibility(window_s* window, bool visibility) {
+    window->cursor_hidden = visibility;
+    glfwSetInputMode(window->glfw_window, GLFW_CURSOR, window->cursor_hidden ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
 void destroy_window() {

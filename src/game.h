@@ -12,6 +12,7 @@
 #include "shader/shader.h"
 #include "entity/entity.h"
 #include "render/renderer.h"
+#include "camera/camera.h"
 
 typedef struct {
     usize permenant_storage_size;
@@ -34,6 +35,7 @@ typedef struct {
     shader_s forward_shader;
 
     // RENDERER
+    camera_s camera;
     forward_renderer_s forward_renderer;
 
     // IMGUI

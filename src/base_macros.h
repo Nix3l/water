@@ -55,4 +55,6 @@
 #define MAT3_IDENTITY (glms_mat3_identity())
 #define MAT4_IDENTITY (glms_mat4_identity())
 
+#define RADIANS(_x) (glm_rad((_x)))
+
 #endif

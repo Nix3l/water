@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
     // FORWARD SHADER
     GLuint forward_transformation;
+    GLuint forward_projection_view;
 } shader_uniform_locations_s;
 
 // takes in source code and compiles a shader accordingly
