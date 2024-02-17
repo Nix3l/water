@@ -44,6 +44,8 @@ shader_s create_shader(
     shader.fragment_id = compile_shader(fragment_src, GL_FRAGMENT_SHADER);
     glAttachShader(shader.program_id, shader.fragment_id);
 
+    // must be called before linking the program unfortunately
+    // would have made my life a bit easier if it didnt have to but oh well
     if(bind_attributes) bind_attributes();
 
     glLinkProgram(shader.program_id);
@@ -57,8 +59,6 @@ shader_s create_shader(
         glGetProgramInfoLog(shader.program_id, 512, NULL, log);
         LOG_ERR("failed to link shader:\n%s\n", log);
     }
-
-    // TODO(nix3l): get the uniform locations
 
     // so this is a bit confusing due to the way it works in opengl
     // basically, when a vs/fs/whatever shader is compiled it is its own thing

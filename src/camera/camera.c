@@ -5,12 +5,9 @@
 
 void update_camera(camera_s* camera) {
     // only move the camera when cursor is hidden
+    if(is_key_pressed(GLFW_KEY_ESCAPE))
+            window_set_cursor_visibility(&game_state->window, !game_state->window.cursor_hidden);
     if(!game_state->window.cursor_hidden) return;
-
-    // TODO(nix3l): make this good
-
-    f32 speed = 0.01f;
-    f32 sens  = 20.0f;
 
     // move the camera
     v3f movement = VECTOR_3(
@@ -20,19 +17,20 @@ void update_camera(camera_s* camera) {
             is_key_down(GLFW_KEY_S) - is_key_down(GLFW_KEY_W)
         );
 
-    movement = glms_vec3_scale(movement, speed);
+    movement = glms_vec3_scale(movement, camera->speed * delta_time());
 
     v3f forward = yaw_pitch_to_direction(camera->rotation.y, camera->rotation.x);
     v3f right = yaw_to_right(camera->rotation.y);
 
-    camera->position = glms_vec3_add(glms_vec3_scale(forward, movement.z), camera->position);
     camera->position = glms_vec3_add(glms_vec3_scale(right, movement.x), camera->position);
+    camera->position = glms_vec3_add(glms_vec3_scale(forward, movement.z), camera->position);
+
     camera->position.y += movement.y;
 
     // rotate the camera
     v2f mouse_move = get_mouse_move();
-    camera->rotation.x += mouse_move.y * sens;
-    camera->rotation.y += mouse_move.x * sens;
+    camera->rotation.x += mouse_move.y * camera->sens * delta_time();
+    camera->rotation.y += mouse_move.x * camera->sens * delta_time();
 }
 
 mat4s camera_projection(camera_s* camera) {

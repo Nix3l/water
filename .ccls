@@ -1,4 +1,4 @@
-gcc %c %h -std=c11 -Wall -Wextra
+gcc %c %h -std=c11 -Wall -Wextra -DMDEBUG=1
 -Isrc
 -Ithird-party
 -Iplatform

@@ -10,6 +10,10 @@ typedef struct {
     f32 fov;
     f32 near_plane;
     f32 far_plane;
+
+    // MOVEMENT
+    f32 speed;
+    f32 sens;
 } camera_s;
 
 void update_camera(camera_s* camera);

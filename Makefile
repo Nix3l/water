@@ -26,10 +26,10 @@ C_HEADERS 	= $(shell find src -iname *.h)
 LIB_SOURCES = $(shell find third-party/src -iname *.c)
 LIB_HEADERS = $(shell find third-party -iname *.h)
 
-FLAGS := -g -std=${STD} ${LIBRARIES} ${DEFINES} ${WARNINGS} ${C_SOURCES} ${LIB_SOURCES} ${C_HEADERS} ${INCLUDE_DIRS}
-
 TEST_FLAGS := -DMTEST=1
 DEBUG_FLAGS := -DMDEBUG=1
+
+FLAGS := ${DEBUG_FLAGS} -g -std=${STD} ${LIBRARIES} ${DEFINES} ${WARNINGS} ${C_SOURCES} ${LIB_SOURCES} ${C_HEADERS} ${INCLUDE_DIRS}
 
 BUILD_DIR := build
 EXEC_NAME := out
@@ -52,6 +52,9 @@ test:
 
 run:
 	${BUILD_DIR}/${EXEC_NAME}
+
+num_lines:
+	cat ${C_SOURCES} ${C_HEADERS} | wc -l
 
 clean:
 	rm ${BUILD_DIR}/*

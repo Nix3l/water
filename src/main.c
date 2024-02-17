@@ -1,5 +1,5 @@
 // CURRENT:
-// TODO(nix3l): make the camera movement good (see camera.c)
+// TODO(nix3l): go around and do your chores
 
 #include "game.h"
 #include "util/log.h"
@@ -16,6 +16,48 @@
 
 game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
+
+static void show_debug_stats_window() {
+    if(is_key_pressed(GLFW_KEY_F1)) game_state->show_debug_stats_window = !game_state->show_debug_stats_window;
+    if(!game_state->show_debug_stats_window) return;
+    igBegin("stats", &game_state->show_debug_stats_window, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+    
+    // FRAME STATS
+    igSeparator();
+    igText("elapsed time: %lf\n", game_state->curr_time);
+    igText("delta time: %f\n", game_state->delta_time);
+    igText("frame count: %u\n", game_state->frame_count);
+    igText("fps: %u\n", game_state->fps);
+
+    igSeparator();
+
+    // MEMORY
+    igText("permenant memory in use: %u/%u\n", sizeof(game_state_s) + game_state->shader_arena.size, game_memory->permenant_storage_size);
+    igText("transient memory: %u\n", game_memory->transient_storage_size);
+
+    igEnd();
+}
+
+static void show_settings_window() {
+    if(is_key_pressed(GLFW_KEY_F2)) game_state->show_settings_window = !game_state->show_settings_window;
+    if(!game_state->show_settings_window) return;
+    igBegin("settings", &game_state->show_settings_window, ImGuiWindowFlags_None);
+    igDragFloat("move speed", &game_state->camera.speed, 1.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
+    igDragFloat("sensetivity", &game_state->camera.sens, 10.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
+    igEnd();
+}
+
+// NOTE(nix3l): this is a very rudimentary version of time profiling
+// later on i should implement a stack based thing where i can push and pop
+// before/after actions to more accurately profile, but that goes beyond
+// the scope of this project
+static void update_frame_stats() {
+    game_state->old_time = game_state->curr_time;
+    game_state->curr_time = glfwGetTime();
+    game_state->delta_time = game_state->curr_time - game_state->old_time;
+    game_state->frame_count ++;
+    game_state->fps = game_state->frame_count / game_state->curr_time;
+}
 
 static void init_game_state(usize permenant_memory_to_allocate, usize transient_memory_to_allocate) {
     ASSERT(sizeof(game_state_s) < permenant_memory_to_allocate);
@@ -46,9 +88,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     create_window(1280, 720, "test");
     init_input();
 
-    // GUI
-    init_imgui();
-
     // SHADERS
     init_forward_shader();
 
@@ -56,12 +95,19 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->camera = (camera_s) {
         .position   = VECTOR_3(0.0f, 0.0f, 0.0f),
         .rotation   = VECTOR_3_ZERO(),
+        
         .fov        = 70.0f,
         .near_plane = 0.001f,
-        .far_plane  = 1000.0f
+        .far_plane  = 1000.0f,
+
+        .speed      = 3.0f,
+        .sens       = 7500.0f
     };
 
     init_forward_renderer();
+
+    // GUI
+    init_imgui();
 
     float vertices[] = {
          0.5f,  0.5f, 0.0f, // top right
@@ -101,32 +147,14 @@ int main(void) {
     init_game_state(GIGABYTES(1), KILOBYTES(64));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
-        if(is_key_pressed(GLFW_KEY_ESCAPE))
-            window_set_cursor_visibility(&game_state->window, !game_state->window.cursor_hidden);
+        update_frame_stats();
 
         update_camera(&game_state->camera);
         render_forward(&game_state->test_entity);
 
         update_imgui();
-
-        igBegin("debug", NULL, ImGuiWindowFlags_None);
-        igDragFloat3("position",
-                game_state->test_entity.transform.position.raw, 
-                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat3("rotation",
-                game_state->test_entity.transform.rotation.raw, 
-                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat3("scale",
-                game_state->test_entity.transform.scale.raw, 
-                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat3("camera position",
-                game_state->camera.position.raw, 
-                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat3("camera rotation",
-                game_state->camera.rotation.raw, 
-                0.1f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_None);
-        igEnd();
-
+        show_debug_stats_window();
+        show_settings_window();
         render_imgui();
 
         glfwSwapBuffers(game_state->window.glfw_window);
