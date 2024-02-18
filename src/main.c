@@ -62,7 +62,6 @@ static void update_frame_stats() {
 static void init_game_state(usize permenant_memory_to_allocate, usize transient_memory_to_allocate) {
     ASSERT(sizeof(game_state_s) < permenant_memory_to_allocate);
 
-    // TODO(nix3l): check for allocation failure
     game_memory = mem_alloc(sizeof(game_memory_s));
     ASSERT(game_memory);
 
@@ -93,7 +92,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     // RENDERER
     game_state->camera = (camera_s) {
-        .position   = VECTOR_3(0.0f, 0.0f, 0.0f),
+        .position   = VECTOR_3(0.0f, 0.0f, 3.0f),
         .rotation   = VECTOR_3_ZERO(),
         
         .fov        = 70.0f,
@@ -109,19 +108,12 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // GUI
     init_imgui();
 
-    float vertices[] = {
-         0.5f,  0.5f, 0.0f, // top right
-         0.5f, -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f  // top left 
-    };
+    game_state->test_entity.mesh = primitive_plane_mesh(
+                VECTOR_3_ZERO(),
+                (v2i) { .x = 128, .y = 128 },
+                VECTOR_2(32.0f, 32.0f)
+            );
 
-    GLuint indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-
-    game_state->test_entity.mesh = create_mesh(vertices, NULL, NULL, NULL, indices, 6, 12);
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
@@ -144,7 +136,7 @@ static void terminate_game() {
 }
 
 int main(void) {
-    init_game_state(GIGABYTES(1), KILOBYTES(64));
+    init_game_state(GIGABYTES(1), MEGABYTES(64));
 
     while(!glfwWindowShouldClose(game_state->window.glfw_window)) {
         update_frame_stats();

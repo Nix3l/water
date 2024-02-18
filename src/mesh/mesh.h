@@ -57,4 +57,7 @@ void mesh_disable_attributes(mesh_s* mesh);
 
 void destroy_mesh(mesh_s* mesh);
 
+// PRIMITIVES
+mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size);
+
 #endif

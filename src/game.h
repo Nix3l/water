@@ -44,6 +44,9 @@ typedef struct {
     camera_s camera;
     forward_renderer_s forward_renderer;
 
+    // MESH
+    arena_s mesh_arena; // contains the raw data of the meshes
+
     // IMGUI
     struct ImGuiContext* imgui_ctx;
     struct ImGuiIO* imgui_io;

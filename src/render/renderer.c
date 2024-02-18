@@ -20,6 +20,8 @@ void render_forward(entity_s* entity) {
 
     game_state->forward_shader.load_uniforms(entity);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glBindVertexArray(entity->mesh.vao);
     mesh_enable_attributes(&entity->mesh);
 
@@ -27,6 +29,8 @@ void render_forward(entity_s* entity) {
 
     mesh_disable_attributes(&entity->mesh);
     glBindVertexArray(0);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     shader_stop();
 }

@@ -98,3 +98,89 @@ void destroy_mesh(mesh_s* mesh) {
 
     glDeleteVertexArrays(1, &mesh->vao);
 }
+
+mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size) {
+    // TODO(nix3l): uvs + normals
+    // NOTE(nix3l): colors are not accounted for in this function
+    // however i can always create another one or pass in a color for all the vertices
+    // as a parameter to this function if need be
+    u32 total_vertices = num_vertices.x * num_vertices.y;
+
+    // -1 to account for the shared vertices
+    // i.e. the edge vertices only belong to one face, whereas
+    // all the other vertices belong to 2-4
+    u32 total_faces = (num_vertices.x - 1) * (num_vertices.y - 1);
+
+    // 2 traingles per quad, 3 indices per triangle
+    // therefore 6 indices per quad
+    u32 total_indices = total_faces * 6;
+    
+    arena_s temp_mem = arena_create_in_block(game_memory->transient_storage, game_memory->transient_storage_size);
+    v3f* vertices = arena_push(&temp_mem, sizeof(v3f) * total_vertices);
+    GLuint* indices = arena_push(&temp_mem, sizeof(GLuint) * total_indices);
+
+    f32 x_step = world_size.x / (num_vertices.x - 1);
+    f32 z_step = world_size.y / (num_vertices.y - 1);
+
+    for(u32 y = 0; y < num_vertices.y; y ++) {
+        for(u32 x = 0; x < num_vertices.x; x ++) {
+            vertices[x + (y * num_vertices.x)].x = bottom_left.x + (x_step * x);
+            vertices[x + (y * num_vertices.x)].y = bottom_left.y;
+            vertices[x + (y * num_vertices.x)].z = bottom_left.z + (z_step * y);
+        }
+    }
+
+    // this offset is kind of hard to explain 
+    // but essentially whenever we hit an edge, the vertex at the very edge
+    // will belong to less faces than faces in the middle
+    // essentially this offset lets us account for that
+    // as we are iterating through the vertices
+    // from bottom left to top right, row by row
+    u32 offset = 0;
+    for(u32 i = 0; i < total_indices; i ++) {
+        // bottom left vertex in the current face
+        u32 face_bottom_left = i / 6 + offset;
+
+        // if we are on an edge
+        if((face_bottom_left + 1) % num_vertices.x == 0) {
+            offset ++;
+            face_bottom_left ++;
+        }
+
+        // keep in mind that we are going from bottom left to top right 
+
+        // first triangle
+        indices[i++] = face_bottom_left; // bottom left
+        indices[i++] = face_bottom_left + num_vertices.x; // top left
+        indices[i++] = face_bottom_left + num_vertices.x + 1; // top right
+
+        // second triangle
+        indices[i++] = face_bottom_left; // bottom left
+        indices[i++] = face_bottom_left + num_vertices.x + 1; // top right
+        indices[i]   = face_bottom_left + 1; // bottom right
+    }
+
+    f32* vertices_raw = arena_push(&temp_mem, sizeof(f32) * total_vertices * 3);
+    f32* curr_vertex_value = vertices_raw;
+    for(u32 i = 0; i < total_vertices; i ++) {
+        *(curr_vertex_value++) = vertices[i].x;
+        *(curr_vertex_value++) = vertices[i].y;
+        *(curr_vertex_value++) = vertices[i].z;
+
+        LOG("vertex [%.3f, %.3f, %.3f]\n", vertices[i].x, vertices[i].y, vertices[i].z);
+    }
+
+    // TODO(nix3l): figure out storing this data in some arena somewhere
+    // technically we are currently feeding it trash data once we are done here
+    mesh_s mesh = create_mesh(
+            vertices_raw,
+            NULL, NULL, NULL,
+            indices,
+            total_indices,
+            total_vertices
+        );
+
+    MEM_ZERO(game_memory->transient_storage, game_memory->transient_storage_size);
+
+    return mesh;
+}
