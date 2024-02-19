@@ -1,9 +1,9 @@
 #version 330 core
 
-in vec3 fs_position;
+in vec2 fs_uvs;
 
 out vec4 out_color;
 
 void main(void) {
-    out_color = vec4(fs_position.rg, 0.3f, 1.0);
+    out_color = vec4(fs_uvs.rg, 0.0, 1.0);
 }

@@ -10,6 +10,7 @@ static void bind_attributes() {
 
 static void load_uniforms(void* data) {
     entity_s* entity = data;
+
     shader_load_float(game_state->shader_uniforms.forward_time, game_state->curr_time);
     shader_load_mat4(game_state->shader_uniforms.forward_transformation, entity_transformation_matrix(entity));
     shader_load_mat4(game_state->shader_uniforms.forward_projection_view, camera_projection_view(&game_state->camera));
@@ -24,7 +25,7 @@ void init_forward_shader() {
             load_uniforms
         );
 
-    game_state->shader_uniforms.forward_time = shader_get_uniform_location(&game_state->forward_shader, "time");
-    game_state->shader_uniforms.forward_transformation = shader_get_uniform_location(&game_state->forward_shader, "transformation");
-    game_state->shader_uniforms.forward_projection_view = shader_get_uniform_location(&game_state->forward_shader, "projection_view");
+    game_state->shader_uniforms.forward_time = shader_get_uniform(&game_state->forward_shader, "time");
+    game_state->shader_uniforms.forward_transformation = shader_get_uniform(&game_state->forward_shader, "transformation");
+    game_state->shader_uniforms.forward_projection_view = shader_get_uniform(&game_state->forward_shader, "projection_view");
 }

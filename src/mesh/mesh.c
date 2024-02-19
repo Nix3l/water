@@ -2,7 +2,7 @@
 #include "game.h"
 #include "util/log.h"
 
-static GLuint create_vbo(GLuint attribute, GLuint dimensions, float* data, int data_size) {
+static GLuint create_vbo(GLuint attribute, GLuint dimensions, GLfloat* data, u32 data_size) {
     GLuint vbo;
     glGenBuffers(1, &vbo);
 
@@ -15,7 +15,7 @@ static GLuint create_vbo(GLuint attribute, GLuint dimensions, float* data, int d
     return vbo;
 }
 
-static GLuint create_indices_vbo(GLuint* indices, int num_indices) {
+static GLuint create_indices_vbo(GLuint* indices, u32 num_indices) {
     GLuint vbo;
     glGenBuffers(1, &vbo);
 
@@ -27,9 +27,9 @@ static GLuint create_indices_vbo(GLuint* indices, int num_indices) {
 }
 
 mesh_s create_mesh(
-        float* vertex_data, float* uvs_data, float* normals_data, float* colors_data, 
+        f32* vertex_data, f32* uvs_data, f32* normals_data, f32* colors_data, 
         GLuint* indices,
-        int num_indices, int num_vertices) {
+        u32 num_indices, u32 num_vertices) {
     mesh_s mesh;
 
     // TODO(nix3l): name and full path
@@ -99,8 +99,8 @@ void destroy_mesh(mesh_s* mesh) {
     glDeleteVertexArrays(1, &mesh->vao);
 }
 
-mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size) {
-    // TODO(nix3l): uvs + normals
+// TODO(nix3l): add an arena parameter to this function
+mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, arena_s* arena) {
     // NOTE(nix3l): colors are not accounted for in this function
     // however i can always create another one or pass in a color for all the vertices
     // as a parameter to this function if need be
@@ -114,19 +114,36 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size) {
     // 2 traingles per quad, 3 indices per triangle
     // therefore 6 indices per quad
     u32 total_indices = total_faces * 6;
-    
-    arena_s temp_mem = arena_create_in_block(game_memory->transient_storage, game_memory->transient_storage_size);
-    v3f* vertices = arena_push(&temp_mem, sizeof(v3f) * total_vertices);
-    GLuint* indices = arena_push(&temp_mem, sizeof(GLuint) * total_indices);
+
+    // OK SO ive narrowed the problem down to garbage data
+    // for some reason after generating a certain number of faces
+    // the data just suddenly becomes completely garbage??
+    // good luck
+
+    f32* vertices = arena_push(arena, sizeof(f32) * total_vertices * 3);
+    f32* uvs = arena_push(arena, sizeof(f32) * total_vertices * 2);
+    f32* normals = arena_push(arena, sizeof(f32) * total_vertices * 3);
+    GLuint* indices = arena_push(arena, sizeof(GLuint) * total_indices);
 
     f32 x_step = world_size.x / (num_vertices.x - 1);
     f32 z_step = world_size.y / (num_vertices.y - 1);
 
+    f32* curr_pos_value = vertices;
+    f32* curr_uvs_value = uvs;
+    f32* curr_normals_value = normals;
+
     for(u32 y = 0; y < num_vertices.y; y ++) {
         for(u32 x = 0; x < num_vertices.x; x ++) {
-            vertices[x + (y * num_vertices.x)].x = bottom_left.x + (x_step * x);
-            vertices[x + (y * num_vertices.x)].y = bottom_left.y;
-            vertices[x + (y * num_vertices.x)].z = bottom_left.z + (z_step * y);
+            *(curr_pos_value ++) = bottom_left.x + (x_step * x);
+            *(curr_pos_value ++) = bottom_left.y;
+            *(curr_pos_value ++) = bottom_left.z + (z_step * y);
+
+            *(curr_uvs_value ++) = bottom_left.x + (x_step * x) / world_size.x;
+            *(curr_uvs_value ++) = bottom_left.z + (z_step * y) / world_size.y;
+
+            *(curr_normals_value ++) = 0.0f;
+            *(curr_normals_value ++) = 1.0f;
+            *(curr_normals_value ++) = 0.0f;
         }
     }
 
@@ -137,7 +154,7 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size) {
     // as we are iterating through the vertices
     // from bottom left to top right, row by row
     u32 offset = 0;
-    for(u32 i = 0; i < total_indices; i ++) {
+    for(u32 i = 0; i < total_indices;) {
         // bottom left vertex in the current face
         u32 face_bottom_left = i / 6 + offset;
 
@@ -157,30 +174,14 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size) {
         // second triangle
         indices[i++] = face_bottom_left; // bottom left
         indices[i++] = face_bottom_left + num_vertices.x + 1; // top right
-        indices[i]   = face_bottom_left + 1; // bottom right
+        indices[i++] = face_bottom_left + 1; // bottom right
     }
 
-    f32* vertices_raw = arena_push(&temp_mem, sizeof(f32) * total_vertices * 3);
-    f32* curr_vertex_value = vertices_raw;
-    for(u32 i = 0; i < total_vertices; i ++) {
-        *(curr_vertex_value++) = vertices[i].x;
-        *(curr_vertex_value++) = vertices[i].y;
-        *(curr_vertex_value++) = vertices[i].z;
-
-        LOG("vertex [%.3f, %.3f, %.3f]\n", vertices[i].x, vertices[i].y, vertices[i].z);
-    }
-
-    // TODO(nix3l): figure out storing this data in some arena somewhere
-    // technically we are currently feeding it trash data once we are done here
-    mesh_s mesh = create_mesh(
-            vertices_raw,
-            NULL, NULL, NULL,
+    return create_mesh(
+            vertices, uvs, normals,
+            NULL,
             indices,
             total_indices,
             total_vertices
         );
-
-    MEM_ZERO(game_memory->transient_storage, game_memory->transient_storage_size);
-
-    return mesh;
 }

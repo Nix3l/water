@@ -2,6 +2,7 @@
 #define MESH_H
 
 #include "base.h"
+#include "memory/memory.h"
 
 typedef enum {
     MESH_NONE = 0x00,
@@ -26,10 +27,10 @@ typedef struct {
     // data
     mesh_data_flags_t data;
 
-    float* vertices;
-    float* uvs;
-    float* normals;
-    float* colors;
+    f32* vertices;
+    f32* uvs;
+    f32* normals;
+    f32* colors;
 
     GLuint* indices;
 
@@ -48,9 +49,9 @@ typedef struct {
 } mesh_s;
 
 mesh_s create_mesh(
-        float* vertex_data, float* uvs_data, float* normals_data, float* colors_data, 
+        f32* vertex_data, f32* uvs_data, f32* normals_data, f32* colors_data, 
         GLuint* indices,
-        int num_indices, int num_vertices);
+        u32 num_indices, u32 num_vertices);
 
 void mesh_enable_attributes(mesh_s* mesh);
 void mesh_disable_attributes(mesh_s* mesh);
@@ -58,6 +59,6 @@ void mesh_disable_attributes(mesh_s* mesh);
 void destroy_mesh(mesh_s* mesh);
 
 // PRIMITIVES
-mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size);
+mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, arena_s* arena);
 
 #endif

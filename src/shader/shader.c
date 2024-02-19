@@ -110,7 +110,7 @@ void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_n
     glBindAttribLocation(shader->program_id, attribute, attribute_name);
 }
 
-GLuint shader_get_uniform_location(shader_s* shader, char* uniform_name) {
+GLuint shader_get_uniform(shader_s* shader, char* uniform_name) {
     GLuint id = glGetUniformLocation(shader->program_id, uniform_name);
     
     if(id == (GLuint)-1)
