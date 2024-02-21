@@ -73,6 +73,10 @@ void arena_pop(arena_s* arena, usize bytes) {
     arena->size -= bytes;
 }
 
+bool arena_fits(arena_s* arena, usize bytes) {
+    return arena->size + bytes <= arena->capacity && !arena->expandable;
+}
+
 void arena_clear(arena_s* arena) {
     arena->size = 0;
     // NOTE(nix3l): no real need to zero the memory here, arena->size = 0 is enough

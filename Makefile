@@ -12,6 +12,7 @@ LIBRARIES := -Lthird-party \
 			 -L${DYNAMIC_LIB} -Wl,-rpath=${DYNAMIC_LIB} \
 			 -lcglm \
 			 -lm \
+			 -lassimp \
 			 -lglfw \
 			 -lcimgui \
 			 -lcimgui_backends

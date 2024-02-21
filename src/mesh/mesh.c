@@ -1,6 +1,11 @@
 #include "mesh.h"
 #include "game.h"
 #include "util/log.h"
+#include "platform/platform.h"
+
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 static GLuint create_vbo(GLuint attribute, GLuint dimensions, GLfloat* data, u32 data_size) {
     GLuint vbo;
@@ -22,7 +27,6 @@ static GLuint create_indices_vbo(GLuint* indices, u32 num_indices) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-    // TODO(nix3l): unbind?
     return vbo;
 }
 
@@ -99,7 +103,102 @@ void destroy_mesh(mesh_s* mesh) {
     glDeleteVertexArrays(1, &mesh->vao);
 }
 
-// TODO(nix3l): add an arena parameter to this function
+// LOADING FROM DISK
+static mesh_s importer_process_mesh(const struct aiMesh* ai_mesh, const struct aiScene* ai_scene, arena_s* arena) {
+    f32* vertices   = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 3);
+    f32* uvs        = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 2);
+    f32* normals    = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 3);
+    f32* colors     = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 3);
+    // assuming 3 vertices per face at all times
+    u32* indices    = arena_push(arena, sizeof(u32) * ai_mesh->mNumFaces * 3);
+
+    u32 curr_vertex_pos = 0;
+    u32 curr_uvs = 0;
+    u32 curr_normals = 0;
+    u32 curr_colors = 0;
+
+    // TODO(nix3l): check if data is in the mesh before using it
+    for(usize i = 0; i < ai_mesh->mNumVertices; i ++) {
+        vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].x;
+        vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].y;
+        vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].z;
+
+        uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].x;
+        uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].y;
+
+        normals[curr_normals++] = ai_mesh->mNormals[i].x;
+        normals[curr_normals++] = ai_mesh->mNormals[i].y;
+        normals[curr_normals++] = ai_mesh->mNormals[i].z;
+
+        if(ai_mesh->mColors[0]) {
+            colors[curr_colors++] = ai_mesh->mColors[0][i].r;
+            colors[curr_colors++] = ai_mesh->mColors[0][i].g;
+            colors[curr_colors++] = ai_mesh->mColors[0][i].b;
+        }
+    }
+
+    u32 curr_index = 0;
+
+    for(usize f = 0; f < ai_mesh->mNumFaces * 3; f ++) {
+        struct aiFace face = ai_mesh->mFaces[f];
+
+        for(usize i = 0; i < face.mNumIndices; i ++)
+            indices[curr_index++] = face.mIndices[i];
+    }
+
+    return create_mesh(
+            vertices, uvs, normals, colors,
+            indices,
+            ai_mesh->mNumFaces * 3, ai_mesh->mNumVertices
+        );
+}
+
+mesh_s load_mesh_from_file(char* filename, arena_s* arena) {
+    mesh_s mesh;
+
+    char* filepath = platform_get_res_path(filename, arena);
+
+    // NOTE(nix3l): for now, load the file data into transient memory
+    // until we are done with it.
+    // not the best solution, since if files go a bit larger, then
+    // transient memory will have to scale accordingly
+    // and we should try to keep the transient memory requirement
+    // as little as possible
+
+    const u32 import_flags =
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_Triangulate |
+        aiProcess_FixInfacingNormals |
+        aiProcess_FlipUVs;
+
+    arena_s temp_mem = arena_create_in_block(game_memory->transient_storage, game_memory->transient_storage_size);
+    usize file_length;
+    void* file_data = platform_load_file(filepath, &file_length, &temp_mem);
+
+    const struct aiScene* scene = aiImportFileFromMemory(file_data, file_length, import_flags, platform_get_file_extension(filepath));
+    if(!scene) {
+        LOG_ERR("couldnt import mesh from file [%s]\n", filepath);
+        return (mesh_s) {};
+    }
+
+    mesh = importer_process_mesh(scene->mMeshes[0], scene, arena);
+    mesh.full_path = filepath;
+    // NOTE(nix3l): assuming that the file name is in the arena already
+    // so not copying it for now
+    mesh.name = filename;
+
+    aiReleaseImport(scene);
+    return mesh;
+}
+
+// MESH GENERATION
+
+// TODO(nix3l): get this function working
+//
+// for now just load a mesh from a file instead of generating one
+// i have no clue why this isnt working and its been 2 days now
+// this project is water not mesh generation, lets not get off track
+
 mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, arena_s* arena) {
     // NOTE(nix3l): colors are not accounted for in this function
     // however i can always create another one or pass in a color for all the vertices
@@ -118,12 +217,11 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
     // OK SO ive narrowed the problem down to garbage data
     // for some reason after generating a certain number of faces
     // the data just suddenly becomes completely garbage??
-    // good luck
 
     f32* vertices = arena_push(arena, sizeof(f32) * total_vertices * 3);
-    f32* uvs = arena_push(arena, sizeof(f32) * total_vertices * 2);
-    f32* normals = arena_push(arena, sizeof(f32) * total_vertices * 3);
-    GLuint* indices = arena_push(arena, sizeof(GLuint) * total_indices);
+    f32* uvs      = arena_push(arena, sizeof(f32) * total_vertices * 2);
+    f32* normals  = arena_push(arena, sizeof(f32) * total_vertices * 3);
+    u32* indices  = arena_push(arena, sizeof(u32) * total_indices);
 
     f32 x_step = world_size.x / (num_vertices.x - 1);
     f32 z_step = world_size.y / (num_vertices.y - 1);
@@ -132,18 +230,24 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
     f32* curr_uvs_value = uvs;
     f32* curr_normals_value = normals;
 
+    u32 vertex = 0;
+
     for(u32 y = 0; y < num_vertices.y; y ++) {
         for(u32 x = 0; x < num_vertices.x; x ++) {
             *(curr_pos_value ++) = bottom_left.x + (x_step * x);
             *(curr_pos_value ++) = bottom_left.y;
             *(curr_pos_value ++) = bottom_left.z + (z_step * y);
 
-            *(curr_uvs_value ++) = bottom_left.x + (x_step * x) / world_size.x;
-            *(curr_uvs_value ++) = bottom_left.z + (z_step * y) / world_size.y;
+            LOG("vertex %u [%.2f, %.2f, %.2f]\n", vertex, *(curr_pos_value - 3), *(curr_pos_value - 2), *(curr_pos_value - 1));
+
+            *(curr_uvs_value ++) = (bottom_left.x + (x_step * x)) / world_size.x;
+            *(curr_uvs_value ++) = (bottom_left.z + (z_step * y)) / world_size.y;
 
             *(curr_normals_value ++) = 0.0f;
             *(curr_normals_value ++) = 1.0f;
             *(curr_normals_value ++) = 0.0f;
+
+            vertex ++;
         }
     }
 
