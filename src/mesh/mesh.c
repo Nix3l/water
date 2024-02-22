@@ -13,7 +13,7 @@ static GLuint create_vbo(GLuint attribute, GLuint dimensions, GLfloat* data, u32
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    glBufferData(GL_ARRAY_BUFFER, data_size * sizeof(GLfloat), data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data_size * dimensions * sizeof(GLfloat), data, GL_STATIC_DRAW);
     glVertexAttribPointer(attribute, dimensions, GL_FLOAT, GL_FALSE, 0, NULL);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -36,18 +36,10 @@ mesh_s create_mesh(
         u32 num_indices, u32 num_vertices) {
     mesh_s mesh;
 
-    // TODO(nix3l): name and full path
-
     if(!vertex_data || num_vertices == 0) {
         LOG_ERR("tried to load mesh without vertex data!\n");
         return (mesh_s) {};
     }
-
-    mesh.vertices = vertex_data;
-    mesh.uvs = uvs_data;
-    mesh.normals = normals_data;
-    mesh.colors = colors_data;
-    mesh.indices = indices;
 
     mesh.data = MESH_VERTICES;
     if(uvs_data) mesh.data |= MESH_UVS;
@@ -65,6 +57,9 @@ mesh_s create_mesh(
 
     mesh.index_count = num_indices;
     mesh.vertex_count = num_vertices;
+
+    mesh.name = NULL;
+    mesh.full_path = NULL;
 
     glBindVertexArray(0);
 
@@ -104,7 +99,17 @@ void destroy_mesh(mesh_s* mesh) {
 }
 
 // LOADING FROM DISK
-static mesh_s importer_process_mesh(const struct aiMesh* ai_mesh, const struct aiScene* ai_scene, arena_s* arena) {
+static mesh_s importer_process_mesh(const struct aiMesh* ai_mesh, arena_s* arena) {
+    if(!ai_mesh->mVertices) {
+        LOG_ERR("tried to load mesh with no vertex data");
+        return (mesh_s) {};
+    }
+
+    // TODO(nix3l): this function is quite bad currently
+    // check if the mesh has the data before loading it
+    // add it to the mesh's data flags
+    // and use those to allocate the memory (i.e. if there arent any uvs, uvs = NULL)
+
     f32* vertices   = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 3);
     f32* uvs        = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 2);
     f32* normals    = arena_push(arena, sizeof(f32) * ai_mesh->mNumVertices * 3);
@@ -117,46 +122,62 @@ static mesh_s importer_process_mesh(const struct aiMesh* ai_mesh, const struct a
     u32 curr_normals = 0;
     u32 curr_colors = 0;
 
-    // TODO(nix3l): check if data is in the mesh before using it
     for(usize i = 0; i < ai_mesh->mNumVertices; i ++) {
         vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].x;
         vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].y;
         vertices[curr_vertex_pos++] = ai_mesh->mVertices[i].z;
 
-        uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].x;
-        uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].y;
+        if(ai_mesh->mTextureCoords[0]) {
+            uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].x;
+            uvs[curr_uvs++] = ai_mesh->mTextureCoords[0][i].y;
+        }
 
-        normals[curr_normals++] = ai_mesh->mNormals[i].x;
-        normals[curr_normals++] = ai_mesh->mNormals[i].y;
-        normals[curr_normals++] = ai_mesh->mNormals[i].z;
+        if(ai_mesh->mNormals) {
+            normals[curr_normals++] = ai_mesh->mNormals[i].x;
+            normals[curr_normals++] = ai_mesh->mNormals[i].y;
+            normals[curr_normals++] = ai_mesh->mNormals[i].z;
+        }
 
         if(ai_mesh->mColors[0]) {
-            colors[curr_colors++] = ai_mesh->mColors[0][i].r;
-            colors[curr_colors++] = ai_mesh->mColors[0][i].g;
-            colors[curr_colors++] = ai_mesh->mColors[0][i].b;
+            colors[curr_colors++] = 0.0f;
+            colors[curr_colors++] = 0.0f;
+            colors[curr_colors++] = 0.0f;
         }
     }
 
     u32 curr_index = 0;
 
-    for(usize f = 0; f < ai_mesh->mNumFaces * 3; f ++) {
+    for(usize f = 0; f < ai_mesh->mNumFaces; f ++) {
         struct aiFace face = ai_mesh->mFaces[f];
 
         for(usize i = 0; i < face.mNumIndices; i ++)
             indices[curr_index++] = face.mIndices[i];
     }
 
-    return create_mesh(
+    mesh_s mesh = create_mesh(
             vertices, uvs, normals, colors,
             indices,
             ai_mesh->mNumFaces * 3, ai_mesh->mNumVertices
         );
+    
+    arena_pop(arena, sizeof(GLuint) * ai_mesh->mNumFaces * 3); // indices
+    arena_pop(arena, sizeof(f32) * ai_mesh->mNumVertices * 3); // colors
+    arena_pop(arena, sizeof(f32) * ai_mesh->mNumVertices * 3); // normals
+    arena_pop(arena, sizeof(f32) * ai_mesh->mNumVertices * 2); // uvs
+    arena_pop(arena, sizeof(f32) * ai_mesh->mNumVertices * 3); // vertices
+
+    return mesh;
 }
 
 mesh_s load_mesh_from_file(char* filename, arena_s* arena) {
     mesh_s mesh;
 
     char* filepath = platform_get_res_path(filename, arena);
+    const u32 import_flags =
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_Triangulate |
+        aiProcess_FixInfacingNormals |
+        aiProcess_FlipUVs;
 
     // NOTE(nix3l): for now, load the file data into transient memory
     // until we are done with it.
@@ -164,14 +185,8 @@ mesh_s load_mesh_from_file(char* filename, arena_s* arena) {
     // transient memory will have to scale accordingly
     // and we should try to keep the transient memory requirement
     // as little as possible
-
-    const u32 import_flags =
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_Triangulate |
-        aiProcess_FixInfacingNormals |
-        aiProcess_FlipUVs;
-
     arena_s temp_mem = arena_create_in_block(game_memory->transient_storage, game_memory->transient_storage_size);
+
     usize file_length;
     void* file_data = platform_load_file(filepath, &file_length, &temp_mem);
 
@@ -181,24 +196,18 @@ mesh_s load_mesh_from_file(char* filename, arena_s* arena) {
         return (mesh_s) {};
     }
 
-    mesh = importer_process_mesh(scene->mMeshes[0], scene, arena);
+    mesh = importer_process_mesh(scene->mMeshes[0], arena);
     mesh.full_path = filepath;
     // NOTE(nix3l): assuming that the file name is in the arena already
     // so not copying it for now
     mesh.name = filename;
 
+    arena_clear(&temp_mem);
     aiReleaseImport(scene);
     return mesh;
 }
 
 // MESH GENERATION
-
-// TODO(nix3l): get this function working
-//
-// for now just load a mesh from a file instead of generating one
-// i have no clue why this isnt working and its been 2 days now
-// this project is water not mesh generation, lets not get off track
-
 mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, arena_s* arena) {
     // NOTE(nix3l): colors are not accounted for in this function
     // however i can always create another one or pass in a color for all the vertices
@@ -230,15 +239,11 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
     f32* curr_uvs_value = uvs;
     f32* curr_normals_value = normals;
 
-    u32 vertex = 0;
-
     for(u32 y = 0; y < num_vertices.y; y ++) {
         for(u32 x = 0; x < num_vertices.x; x ++) {
             *(curr_pos_value ++) = bottom_left.x + (x_step * x);
             *(curr_pos_value ++) = bottom_left.y;
             *(curr_pos_value ++) = bottom_left.z + (z_step * y);
-
-            LOG("vertex %u [%.2f, %.2f, %.2f]\n", vertex, *(curr_pos_value - 3), *(curr_pos_value - 2), *(curr_pos_value - 1));
 
             *(curr_uvs_value ++) = (bottom_left.x + (x_step * x)) / world_size.x;
             *(curr_uvs_value ++) = (bottom_left.z + (z_step * y)) / world_size.y;
@@ -246,8 +251,6 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
             *(curr_normals_value ++) = 0.0f;
             *(curr_normals_value ++) = 1.0f;
             *(curr_normals_value ++) = 0.0f;
-
-            vertex ++;
         }
     }
 
@@ -281,11 +284,18 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
         indices[i++] = face_bottom_left + 1; // bottom right
     }
 
-    return create_mesh(
+    mesh_s mesh = create_mesh(
             vertices, uvs, normals,
-            NULL,
+            NULL, // no colors
             indices,
             total_indices,
             total_vertices
         );
+
+    arena_pop(arena, sizeof(GLuint) * total_indices);   // indices
+    arena_pop(arena, sizeof(f32) * total_vertices * 3); // normals
+    arena_pop(arena, sizeof(f32) * total_vertices * 2); // uvs
+    arena_pop(arena, sizeof(f32) * total_vertices * 3); // vertices
+
+    return mesh;
 }

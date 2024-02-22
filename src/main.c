@@ -1,6 +1,5 @@
 // CURRENT:
-// TODO(nix3l): implement mesh loading from disk
-// TODO(nix3l): fix the debug menus and make partitioning memory easier
+// TODO(nix3l): fix the debug menus
 // TODO(nix3l): start the sum of sines water implementation
 
 #include "game.h"
@@ -36,6 +35,7 @@ static void show_debug_stats_window() {
     // MEMORY
     igText("permenant memory in use: %u/%u\n", sizeof(game_state_s) + game_state->shader_arena.size + game_state->mesh_arena.size, game_memory->permenant_storage_size);
     igIndent(12.0f);
+    igText("of which state: %u\n", sizeof(game_state_s));
     igText("of which shaders: %u/%u\n", game_state->shader_arena.size, game_state->shader_arena.capacity);
     igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
     igUnindent(12.0f);
@@ -62,7 +62,18 @@ static void update_frame_stats() {
     game_state->curr_time = glfwGetTime();
     game_state->delta_time = game_state->curr_time - game_state->old_time;
     game_state->frame_count ++;
+    // TODO(nix3l): what was i thinking lol this is not how you count fps
     game_state->fps = game_state->frame_count / game_state->curr_time;
+}
+
+// if size is 0, give the rest of the available memory to the arena
+static arena_s partition_permenant_memory(void** mem, usize size, usize* remaining) {
+    ASSERT(size <= *remaining);
+    arena_s arena = arena_create_in_block(*mem, size > 0 ? size : *remaining);
+
+    *remaining -= size;
+    *mem += size;
+    return arena;
 }
 
 static void init_game_state(usize permenant_memory_to_allocate, usize transient_memory_to_allocate) {
@@ -85,14 +96,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state = game_memory->permenant_storage;
     MEM_ZERO_STRUCT(game_state);
 
-    // TODO(nix3l): this is so bad holy
-    // please make it good
-    void* storage_past_state = game_memory->permenant_storage + sizeof(game_state_s);
-    usize remaining_storage = permenant_memory_to_allocate - sizeof(game_state_s);
-
-    game_state->shader_arena = arena_create_in_block(storage_past_state, MEGABYTES(1));
-    remaining_storage -= MEGABYTES(1);
-    game_state->mesh_arena = arena_create_in_block(storage_past_state + game_state->shader_arena.capacity, remaining_storage);
+    void* memory = game_memory->permenant_storage + sizeof(game_state_s);
+    usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
+    
+    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
+    game_state->mesh_arena = partition_permenant_memory(&memory, 0, &remaining_memory);
 
     // IO
     create_window(1280, 720, "test");
@@ -119,7 +127,13 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // GUI
     init_imgui();
 
-    game_state->test_entity.mesh = load_mesh_from_file("plane.glb", &game_state->mesh_arena);
+    // game_state->test_entity.mesh = load_mesh_from_file("plane.glb", &game_state->mesh_arena);
+    game_state->test_entity.mesh = primitive_plane_mesh(
+            VECTOR_3_ZERO(),
+            (v2i) { .x = 128, .y = 128 },
+            VECTOR_2(32.0f, 32.0f),
+            &game_state->mesh_arena
+        );
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),

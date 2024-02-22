@@ -12,7 +12,7 @@ void init_forward_renderer() {
 void render_forward(entity_s* entity) {
     v4f bg = game_state->forward_renderer.background_color;
     glClearColor(bg.x, bg.y, bg.z, bg.w);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glViewport(0, 0, game_state->window.width, game_state->window.height);
 

@@ -19,6 +19,7 @@ enum {
     MESH_ATTRIBUTE_COLORS = 3,
 };
 
+
 typedef struct {
     // metadata
     char* name;
@@ -26,13 +27,6 @@ typedef struct {
 
     // data
     mesh_data_flags_t data;
-
-    f32* vertices;
-    f32* uvs;
-    f32* normals;
-    f32* colors;
-
-    GLuint* indices;
 
     u32 index_count; // only for indices
     u32 vertex_count; // same for all vertex data
