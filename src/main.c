@@ -10,9 +10,6 @@
 // at some point probably try to compile the new backends. the new version of the main lib is still here though
 
 #include "platform/platform.h"
-#include "io/window.h"
-#include "io/input.h"
-#include "im_gui/im_gui.h"
 #include "shader/forward_shader/forward_shader.h"
 
 game_memory_s* game_memory = NULL;
@@ -33,13 +30,19 @@ static void show_debug_stats_window() {
     igSeparator();
 
     // MEMORY
-    igText("permenant memory in use: %u/%u\n", sizeof(game_state_s) + game_state->shader_arena.size + game_state->mesh_arena.size, game_memory->permenant_storage_size);
+    igText("total transient memory: %u\n", game_memory->transient_storage_size);
+    igText("total permenant memory: %u\n", game_memory->permenant_storage_size);
+
+    igText("permenant memory in use: %u/%u\n",
+            sizeof(game_state_s) + 
+            game_state->shader_arena.size + 
+            game_state->mesh_arena.size,
+            game_memory->permenant_storage_size);
     igIndent(12.0f);
     igText("of which state: %u\n", sizeof(game_state_s));
     igText("of which shaders: %u/%u\n", game_state->shader_arena.size, game_state->shader_arena.capacity);
     igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
     igUnindent(12.0f);
-    igText("transient memory: %u\n", game_memory->transient_storage_size);
 
     igEnd();
 }
@@ -47,9 +50,13 @@ static void show_debug_stats_window() {
 static void show_settings_window() {
     if(is_key_pressed(GLFW_KEY_F2)) game_state->show_settings_window = !game_state->show_settings_window;
     if(!game_state->show_settings_window) return;
+
     igBegin("settings", &game_state->show_settings_window, ImGuiWindowFlags_None);
+
+    // CAMERA
     igDragFloat("move speed", &game_state->camera.speed, 1.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
     igDragFloat("sensetivity", &game_state->camera.sens, 10.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
+
     igEnd();
 }
 
@@ -62,8 +69,16 @@ static void update_frame_stats() {
     game_state->curr_time = glfwGetTime();
     game_state->delta_time = game_state->curr_time - game_state->old_time;
     game_state->frame_count ++;
-    // TODO(nix3l): what was i thinking lol this is not how you count fps
-    game_state->fps = game_state->frame_count / game_state->curr_time;
+    game_state->fps_counter ++;
+    game_state->fps_timer += game_state->delta_time;
+
+    // update fps every 0.16s or so
+    // makes it flicker less than updating it every frame
+    if(game_state->fps_timer >= (1/6.0f)) {
+        game_state->fps = game_state->fps_counter / game_state->fps_timer;
+        game_state->fps_counter = 0;
+        game_state->fps_timer = 0.0f;
+    }
 }
 
 // if size is 0, give the rest of the available memory to the arena

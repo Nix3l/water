@@ -23,6 +23,11 @@ typedef struct {
 } game_memory_s;
 
 typedef struct {
+    // ARENAS
+    arena_s* mem_arenas[2];
+    arena_s shader_arena; // mostly contains text for shader paths/names
+    arena_s mesh_arena; // contains text for mesh names/filepaths
+
     // IO
     window_s window;
     input_state_s input_state;
@@ -31,21 +36,18 @@ typedef struct {
     f64 old_time;
     f64 curr_time;
     f32 delta_time;
-    f32 fps_timer;
     u32 frame_count;
+    f32 fps_timer;
+    u32 fps_counter;
     u32 fps;
 
     // SHADERS
-    arena_s shader_arena; // mostly contains text for shader paths/names
     shader_uniform_locations_s shader_uniforms;
     shader_s forward_shader;
 
     // RENDERER
     camera_s camera;
     forward_renderer_s forward_renderer;
-
-    // MESH
-    arena_s mesh_arena; // contains the raw data of the meshes
 
     // IMGUI
     struct ImGuiContext* imgui_ctx;
