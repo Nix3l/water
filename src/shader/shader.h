@@ -27,6 +27,12 @@ typedef struct {
     GLuint forward_time;
     GLuint forward_transformation;
     GLuint forward_projection_view;
+    GLuint forward_wavelength;
+    GLuint forward_amplitude;
+    GLuint forward_speed;
+    GLuint forward_wavelength_factor;
+    GLuint forward_amplitude_factor;
+    GLuint forward_num_waves;
 } shader_uniform_locations_s;
 
 // takes in source code and compiles a shader accordingly

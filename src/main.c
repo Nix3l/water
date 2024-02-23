@@ -1,6 +1,5 @@
 // CURRENT:
-// TODO(nix3l): fix the debug menus
-// TODO(nix3l): start the sum of sines water implementation
+// TODO(nix3l): finish the sum of sines implementation
 
 #include "game.h"
 #include "util/log.h"
@@ -19,7 +18,7 @@ static void show_debug_stats_window() {
     if(is_key_pressed(GLFW_KEY_F1)) game_state->show_debug_stats_window = !game_state->show_debug_stats_window;
     if(!game_state->show_debug_stats_window) return;
     igBegin("stats", &game_state->show_debug_stats_window, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-    
+
     // FRAME STATS
     igSeparator();
     igText("elapsed time: %lf\n", game_state->curr_time);
@@ -57,6 +56,22 @@ static void show_settings_window() {
     igDragFloat("move speed", &game_state->camera.speed, 1.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
     igDragFloat("sensetivity", &game_state->camera.sens, 10.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
 
+    igSeparator();
+
+    // RENDERER
+    if(igButton("render wireframe", (ImVec2) { .x = -1.0f, .y = 24.0f }))
+        game_state->forward_renderer.render_wireframe = !game_state->forward_renderer.render_wireframe;
+
+    igSeparator();
+
+    // SHADER VARIABLES
+    igDragFloat("wavelength", &game_state->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("amplitude", &game_state->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("speed", &game_state->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragInt("number of waves", &game_state->num_waves, 0.01f, 1, MAX_u32, "%u", ImGuiSliderFlags_None);
+
     igEnd();
 }
 
@@ -81,10 +96,9 @@ static void update_frame_stats() {
     }
 }
 
-// if size is 0, give the rest of the available memory to the arena
 static arena_s partition_permenant_memory(void** mem, usize size, usize* remaining) {
     ASSERT(size <= *remaining);
-    arena_s arena = arena_create_in_block(*mem, size > 0 ? size : *remaining);
+    arena_s arena = arena_create_in_block(*mem, size);
 
     *remaining -= size;
     *mem += size;
@@ -94,6 +108,7 @@ static arena_s partition_permenant_memory(void** mem, usize size, usize* remaini
 static void init_game_state(usize permenant_memory_to_allocate, usize transient_memory_to_allocate) {
     ASSERT(sizeof(game_state_s) < permenant_memory_to_allocate);
 
+    // INITIALISE MEMORY
     game_memory = mem_alloc(sizeof(game_memory_s));
     ASSERT(game_memory);
 
@@ -114,19 +129,23 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     void* memory = game_memory->permenant_storage + sizeof(game_state_s);
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
-    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
-    game_state->mesh_arena = partition_permenant_memory(&memory, 0, &remaining_memory);
+    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
+    game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
-    create_window(1280, 720, "test");
+    create_window(1280, 720, "water");
     init_input();
 
     // SHADERS
     init_forward_shader();
 
+    game_state->wavelength = 1.0f;
+    game_state->amplitude = 1.0f;
+    game_state->speed = 1.0f;
+
     // RENDERER
     game_state->camera = (camera_s) {
-        .position   = VECTOR_3(0.0f, 0.0f, 3.0f),
+        .position   = VECTOR_3(0.0f, 3.0f, 0.0f),
         .rotation   = VECTOR_3_ZERO(),
         
         .fov        = 70.0f,
@@ -142,13 +161,13 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // GUI
     init_imgui();
 
-    // game_state->test_entity.mesh = load_mesh_from_file("plane.glb", &game_state->mesh_arena);
     game_state->test_entity.mesh = primitive_plane_mesh(
-            VECTOR_3_ZERO(),
-            (v2i) { .x = 128, .y = 128 },
-            VECTOR_2(32.0f, 32.0f),
-            &game_state->mesh_arena
-        );
+        VECTOR_3(-64.0f, 0.0f, -64.0f),
+        (v2i) { .x = 256, .y = 256 },
+        VECTOR_2(128.0f, 128.0f),
+        &game_state->mesh_arena
+    );
+
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
@@ -166,6 +185,7 @@ static void terminate_game() {
     shutdown_imgui();
     destroy_window();
 
+    mem_free(game_memory->transient_storage);
     mem_free(game_memory->permenant_storage);
     mem_free(game_memory);
 }

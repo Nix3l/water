@@ -9,6 +9,8 @@
 typedef struct {
     v4f background_color;
     shader_s* shader;
+
+    bool render_wireframe;
 } forward_renderer_s;
 
 void init_forward_renderer();

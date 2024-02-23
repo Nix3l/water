@@ -24,7 +24,6 @@ typedef struct {
 
 typedef struct {
     // ARENAS
-    arena_s* mem_arenas[2];
     arena_s shader_arena; // mostly contains text for shader paths/names
     arena_s mesh_arena; // contains text for mesh names/filepaths
 
@@ -44,6 +43,14 @@ typedef struct {
     // SHADERS
     shader_uniform_locations_s shader_uniforms;
     shader_s forward_shader;
+    
+    // WATER SHADER VARIABLES
+    f32 wavelength;
+    f32 amplitude;
+    f32 speed;
+    f32 wavelength_factor;
+    f32 amplitude_factor;
+    u32 num_waves;
 
     // RENDERER
     camera_s camera;

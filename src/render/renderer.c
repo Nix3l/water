@@ -5,7 +5,8 @@
 void init_forward_renderer() {
     game_state->forward_renderer = (forward_renderer_s) {
         .background_color = VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f),
-        .shader = &game_state->forward_shader
+        .shader = &game_state->forward_shader,
+        .render_wireframe = false
     };
 }
 
@@ -20,7 +21,8 @@ void render_forward(entity_s* entity) {
 
     game_state->forward_shader.load_uniforms(entity);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    if(game_state->forward_renderer.render_wireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glBindVertexArray(entity->mesh.vao);
     mesh_enable_attributes(&entity->mesh);
@@ -30,7 +32,8 @@ void render_forward(entity_s* entity) {
     mesh_disable_attributes(&entity->mesh);
     glBindVertexArray(0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if(game_state->forward_renderer.render_wireframe)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     shader_stop();
 }
