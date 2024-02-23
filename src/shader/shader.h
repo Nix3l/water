@@ -33,6 +33,11 @@ typedef struct {
     GLuint forward_wavelength_factor;
     GLuint forward_amplitude_factor;
     GLuint forward_num_waves;
+    GLuint forward_light_dir;
+    GLuint forward_light_color;
+    GLuint forward_light_intensity;
+    GLuint forward_ambient;
+    GLuint forward_ambient_color;
 } shader_uniform_locations_s;
 
 // takes in source code and compiles a shader accordingly

@@ -71,6 +71,11 @@ static void show_settings_window() {
     igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragInt("number of waves", &game_state->num_waves, 0.01f, 1, MAX_u32, "%u", ImGuiSliderFlags_None);
+    igDragFloat3("light direction", game_state->sun.direction.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
+    igColorEdit3("light color", game_state->sun.color.raw, ImGuiColorEditFlags_None);
+    igDragFloat("light intensity", &game_state->sun.intensity, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("ambient", &game_state->ambient, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igColorEdit3("ambient color", game_state->ambient_color.raw, ImGuiColorEditFlags_None);
 
     igEnd();
 }
@@ -139,13 +144,16 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
-    game_state->wavelength = 1.0f;
-    game_state->amplitude = 1.0f;
-    game_state->speed = 1.0f;
+    game_state->wavelength = 5.0f;
+    game_state->amplitude = 0.25f;
+    game_state->speed = 10.0f;
+    game_state->wavelength_factor = 0.75f;
+    game_state->amplitude_factor = 0.60f;
+    game_state->num_waves = 128;
 
     // RENDERER
     game_state->camera = (camera_s) {
-        .position   = VECTOR_3(0.0f, 3.0f, 0.0f),
+        .position   = VECTOR_3(0.0f, 12.0f, 0.0f),
         .rotation   = VECTOR_3_ZERO(),
         
         .fov        = 70.0f,
@@ -156,15 +164,24 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         .sens       = 7500.0f
     };
 
+    game_state->sun = (directional_light_s) {
+        .color = VECTOR_3(1.0f, 1.0f, 1.0f),
+        .direction = VECTOR_3_ZERO(),
+        .intensity = 1.0f
+    };
+
+    game_state->ambient = 0.1f;
+    game_state->ambient_color = VECTOR_3(191.0f/255.0f, 181.0f/255.0f, 121.0f/255.0f);
+
     init_forward_renderer();
 
     // GUI
     init_imgui();
 
     game_state->test_entity.mesh = primitive_plane_mesh(
-        VECTOR_3(-64.0f, 0.0f, -64.0f),
-        (v2i) { .x = 256, .y = 256 },
-        VECTOR_2(128.0f, 128.0f),
+        VECTOR_3(-128.0f, 0.0f, -128.0f),
+        (v2i) { .x = 512, .y = 512 },
+        VECTOR_2(256.0f, 256.0f),
         &game_state->mesh_arena
     );
 

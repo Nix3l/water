@@ -13,6 +13,7 @@
 #include "entity/entity.h"
 #include "render/renderer.h"
 #include "camera/camera.h"
+#include "light/light.h"
 
 typedef struct {
     usize permenant_storage_size;
@@ -51,9 +52,12 @@ typedef struct {
     f32 wavelength_factor;
     f32 amplitude_factor;
     u32 num_waves;
+    f32 ambient;
+    v3f ambient_color;
 
     // RENDERER
     camera_s camera;
+    directional_light_s sun;
     forward_renderer_s forward_renderer;
 
     // IMGUI
