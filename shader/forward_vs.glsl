@@ -6,46 +6,67 @@ layout (location = 2) in vec3 vs_normals;
 
 uniform float time;
 
-uniform float wavelength;
-uniform float amplitude;
-uniform float speed;
-
-uniform float wavelength_factor;
-uniform float amplitude_factor;
-
-uniform int num_waves;
-
 uniform mat4 transformation;
 uniform mat4 projection_view;
 
+// TODO(nix3l): change angle to direction
+
+#define TOTAL_WAVES 4
+uniform float wavelengths[TOTAL_WAVES];
+uniform float amplitudes[TOTAL_WAVES];
+uniform float speeds[TOTAL_WAVES];
+uniform float angles[TOTAL_WAVES];
+uniform float wavelength_factor;
+uniform float amplitude_factor;
+
 out vec3 fs_normals;
+
+struct wave_displacement_s {
+    vec2 derivative;
+    float displacement;
+};
+
+// TODO(nix3l): look into out/inout function parameters to get rid of the return value here
+wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
+    float angle = angles[index];
+    float x = position.x * cos(angle);
+    float z = position.z * sin(angle);
+
+    vec2 derivative = vec2(0.0);
+    float displacement = 0.0;
+
+    float a = amplitudes[index] * pow(amplitude_factor, index);
+    float w = wavelengths[index] * pow(wavelength_factor, index);
+    float frequency = 2.0 / w;
+    float phase = speeds[index] * frequency;
+    displacement += a * sin(frequency * x + time * phase);
+    displacement += a * sin(frequency * z + time * phase);
+
+    derivative.x += a * frequency * cos(frequency * x + time * phase);
+    derivative.y += a * frequency * cos(frequency * z + time * phase);
+
+    return wave_displacement_s(derivative, displacement);
+}
 
 void main(void) {
     vec3 position = vs_position;
 
     // TODO(nix3l): lighting + normals
 
-    float w = wavelength;
-    float a = amplitude;
-    
-    float dx = 0.0f; 
-    float dz = 0.0f; 
+    float total_displacement = 0.0f;
+    vec2 total_derivative = vec2(0.0);
 
-    for(int i = 0; i < num_waves; i ++) {
-        float frequency = 2.0 / w;
-        float phase = speed * frequency;
-        position.y += a * sin(frequency * position.x + time * phase);
-        position.y += a * sin(frequency * position.z + time * phase);
-
-        dx += a * frequency * cos(frequency * position.x + time * phase);
-        dz += a * frequency * cos(frequency * position.z + time * phase);
-
-        w *= wavelength_factor;
-        a *= amplitude_factor;
+    for(int i = 0; i < TOTAL_WAVES; i ++) {
+        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position);
+        total_displacement += wave_displacement.displacement;
+        total_derivative += wave_displacement.derivative;
     }
 
-    vec3 tangent  = normalize(vec3(1.0f, dx, 0.0f));
-    vec3 binormal = normalize(vec3(0.0f, dz, 1.0f));
+    position.y += total_displacement;
+
+    // TODO(nix3l): i do not think this works lol
+    vec3 tangent = normalize(vec3(1.0f, total_derivative.x, 0.0f));
+    vec3 binormal = normalize(vec3(0.0f, total_derivative.y, 1.0f));
     vec3 normal = -cross(tangent, binormal);
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);

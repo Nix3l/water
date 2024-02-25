@@ -19,27 +19,6 @@ typedef struct {
     void (*load_uniforms) (void*);
 } shader_s;
 
-// NOTE(nix3l): in case i ever make enough shaders that managin this struct becomes tedious
-// i can always split it into separate structs
-// to make it a bit more tidy but i doubt i would ever get to that point
-typedef struct {
-    // FORWARD SHADER
-    GLuint forward_time;
-    GLuint forward_transformation;
-    GLuint forward_projection_view;
-    GLuint forward_wavelength;
-    GLuint forward_amplitude;
-    GLuint forward_speed;
-    GLuint forward_wavelength_factor;
-    GLuint forward_amplitude_factor;
-    GLuint forward_num_waves;
-    GLuint forward_light_dir;
-    GLuint forward_light_color;
-    GLuint forward_light_intensity;
-    GLuint forward_ambient;
-    GLuint forward_ambient_color;
-} shader_uniform_locations_s;
-
 // takes in source code and compiles a shader accordingly
 shader_s create_shader(
         char* name,
@@ -68,5 +47,7 @@ void shader_load_bool(GLuint uniform, bool value);
 void shader_load_vec2(GLuint uniform, vec2s value);
 void shader_load_vec3(GLuint uniform, vec3s value);
 void shader_load_mat4(GLuint uniform, mat4s value);
+
+// TODO(nix3l): make wrapper functions for glUniform*v()
 
 #endif

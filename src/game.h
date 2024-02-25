@@ -10,6 +10,7 @@
 #include "io/input.h"
 #include "mesh/mesh.h"
 #include "shader/shader.h"
+#include "shader/forward_shader/forward_shader.h"
 #include "entity/entity.h"
 #include "render/renderer.h"
 #include "camera/camera.h"
@@ -42,16 +43,14 @@ typedef struct {
     u32 fps;
 
     // SHADERS
-    shader_uniform_locations_s shader_uniforms;
+    forward_shader_uniforms_s forward_shader_uniforms;
     shader_s forward_shader;
     
     // WATER SHADER VARIABLES
-    f32 wavelength;
-    f32 amplitude;
-    f32 speed;
+    wave_s waves[TOTAL_WAVES];
     f32 wavelength_factor;
     f32 amplitude_factor;
-    u32 num_waves;
+
     f32 ambient;
     v3f ambient_color;
 

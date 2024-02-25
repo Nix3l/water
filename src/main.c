@@ -1,4 +1,5 @@
 // CURRENT:
+// TODO(nix3l): figure out how to load structs into shaders
 // TODO(nix3l): finish the sum of sines implementation
 
 #include "game.h"
@@ -65,12 +66,30 @@ static void show_settings_window() {
     igSeparator();
 
     // SHADER VARIABLES
-    igDragFloat("wavelength", &game_state->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragFloat("amplitude", &game_state->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragFloat("speed", &game_state->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragInt("number of waves", &game_state->num_waves, 0.01f, 1, MAX_u32, "%u", ImGuiSliderFlags_None);
+    
+    void* temp_mem = game_memory->transient_storage;
+    MEM_ZERO(temp_mem, 8);
+    if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
+        igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+
+        for(u32 i = 0; i < TOTAL_WAVES; i ++) {
+            wave_s wave = game_state->waves[i];
+            char* label = temp_mem;
+            snprintf(label, 8, "wave %u", i);
+            
+            if(!igTreeNode_Str(label)) continue;
+
+            igDragFloat("wavelength", &wave.wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+            igDragFloat("amplitude", &wave.amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+            igDragFloat("speed", &wave.speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+            igDragFloat("angle", &wave.angle, 0.01f, 0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
+            igTreePop();
+        }
+    }
+
+    igSeparator();
+
     igDragFloat3("light direction", game_state->sun.direction.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("light color", game_state->sun.color.raw, ImGuiColorEditFlags_None);
     igDragFloat("light intensity", &game_state->sun.intensity, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -144,12 +163,15 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
-    game_state->wavelength = 5.0f;
-    game_state->amplitude = 0.25f;
-    game_state->speed = 10.0f;
-    game_state->wavelength_factor = 0.75f;
-    game_state->amplitude_factor = 0.60f;
-    game_state->num_waves = 128;
+    for(int i = 0; i < TOTAL_WAVES; i ++) {
+        game_state->waves[i].wavelength = 3.0f;
+        game_state->waves[i].amplitude = 0.30f;
+        game_state->waves[i].speed = 3.0f;
+        game_state->waves[i].angle = 0.0f;
+    }
+
+    game_state->wavelength_factor = 1.18f;
+    game_state->amplitude_factor = 0.78f;
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -166,8 +188,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->sun = (directional_light_s) {
         .color = VECTOR_3(1.0f, 1.0f, 1.0f),
-        .direction = VECTOR_3_ZERO(),
-        .intensity = 1.0f
+        .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
+        .intensity = 0.5f
     };
 
     game_state->ambient = 0.1f;
