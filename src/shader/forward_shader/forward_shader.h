@@ -29,7 +29,7 @@ typedef struct {
     GLuint ambient_color;
 } forward_shader_uniforms_s;
 
-#define TOTAL_WAVES 4
+#define TOTAL_WAVES 32
 
 typedef struct {
     f32 wavelength;

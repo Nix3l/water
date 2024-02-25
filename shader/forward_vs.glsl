@@ -9,13 +9,17 @@ uniform float time;
 uniform mat4 transformation;
 uniform mat4 projection_view;
 
-// TODO(nix3l): change angle to direction
+// NOTE(nix3l): had to change this from using a struct array
+// to using separate arrays for each parameter
+// because glsl is stupid when it comes to accessing structs in uniforms
 
-#define TOTAL_WAVES 4
+// WAVE DATA
+#define TOTAL_WAVES 32
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float speeds[TOTAL_WAVES];
 uniform float angles[TOTAL_WAVES];
+
 uniform float wavelength_factor;
 uniform float amplitude_factor;
 
@@ -29,8 +33,8 @@ struct wave_displacement_s {
 // TODO(nix3l): look into out/inout function parameters to get rid of the return value here
 wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
     float angle = angles[index];
-    float x = position.x * cos(angle);
-    float z = position.z * sin(angle);
+    float x = position.x * cos(angle) - position.z * sin(angle);
+    float z = position.x * sin(angle) + position.z * cos(angle); 
 
     vec2 derivative = vec2(0.0);
     float displacement = 0.0;

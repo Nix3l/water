@@ -23,10 +23,10 @@ static void load_uniforms(void* data) {
     for(usize i = 0; i < TOTAL_WAVES; i ++) {
         wave_s wave = game_state->waves[i];
 
-        shader_load_float(uniforms->wavelength        + i, wave.wavelength);
-        shader_load_float(uniforms->amplitude         + i, wave.amplitude);
-        shader_load_float(uniforms->speed             + i, wave.speed);
-        shader_load_float(uniforms->angle             + i, wave.angle);
+        shader_load_float(uniforms->wavelength + i, wave.wavelength);
+        shader_load_float(uniforms->amplitude  + i, wave.amplitude);
+        shader_load_float(uniforms->speed      + i, wave.speed);
+        shader_load_float(uniforms->angle      + i, wave.angle);
     }
 
     shader_load_float(uniforms->wavelength_factor, game_state->wavelength_factor);
@@ -59,6 +59,7 @@ void init_forward_shader() {
     uniforms->wavelength        = shader_get_uniform(shader, "wavelengths[0]");
     uniforms->amplitude         = shader_get_uniform(shader, "amplitudes[0]");
     uniforms->speed             = shader_get_uniform(shader, "speeds[0]");
+    uniforms->angle             = shader_get_uniform(shader, "angles[0]");
     uniforms->wavelength_factor = shader_get_uniform(shader, "wavelength_factor");
     uniforms->amplitude_factor  = shader_get_uniform(shader, "amplitude_factor");
 
