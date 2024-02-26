@@ -23,6 +23,7 @@ uniform float angles[TOTAL_WAVES];
 uniform float wavelength_factor;
 uniform float amplitude_factor;
 
+out vec3 fs_position;
 out vec3 fs_normals;
 
 struct wave_displacement_s {
@@ -70,9 +71,10 @@ void main(void) {
 
     // TODO(nix3l): i do not think this works lol
     vec3 tangent = normalize(vec3(1.0f, total_derivative.x, 0.0f));
-    vec3 binormal = normalize(vec3(0.0f, total_derivative.y, 1.0f));
-    vec3 normal = -cross(tangent, binormal);
+    vec3 binormal = normalize(vec3(0.0f, total_derivative.y, -1.0f));
+    vec3 normal = cross(tangent, binormal);
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);
+    fs_position = vec3(transformation * vec4(position, 1.0));
     fs_normals = normal;
 }

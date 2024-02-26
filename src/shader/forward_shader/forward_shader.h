@@ -25,6 +25,13 @@ typedef struct {
     GLuint light_dir;
     GLuint light_color;
     GLuint light_intensity;
+
+    GLuint water_color;
+
+    GLuint specular_factor;
+    GLuint specular_strength;
+    GLuint camera_pos;
+    
     GLuint ambient;
     GLuint ambient_color;
 } forward_shader_uniforms_s;

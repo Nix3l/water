@@ -51,6 +51,11 @@ typedef struct {
     f32 wavelength_factor;
     f32 amplitude_factor;
 
+    v3f water_color;
+
+    f32 specular_factor;
+    f32 specular_strength;
+
     f32 ambient;
     v3f ambient_color;
 

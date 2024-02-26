@@ -56,6 +56,9 @@ static void show_settings_window() {
     igDragFloat("move speed", &game_state->camera.speed, 1.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
     igDragFloat("sensetivity", &game_state->camera.sens, 10.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
 
+    // WATER TRANSFORM
+    igDragFloat3("scale", game_state->test_entity.transform.scale.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);;
+
     igSeparator();
 
     // RENDERER
@@ -92,6 +95,12 @@ static void show_settings_window() {
     igDragFloat3("light direction", game_state->sun.direction.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("light color", game_state->sun.color.raw, ImGuiColorEditFlags_None);
     igDragFloat("light intensity", &game_state->sun.intensity, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+
+    igColorEdit3("water color", game_state->water_color.raw, ImGuiColorEditFlags_None);
+
+    igDragFloat("specular factor", &game_state->specular_factor, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("specular strength", &game_state->specular_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    
     igDragFloat("ambient", &game_state->ambient, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("ambient color", game_state->ambient_color.raw, ImGuiColorEditFlags_None);
 
@@ -188,11 +197,16 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->sun = (directional_light_s) {
         .color = VECTOR_3(1.0f, 1.0f, 1.0f),
         .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
-        .intensity = 0.5f
+        .intensity = 1.2f
     };
 
+    game_state->water_color = VECTOR_3(86.0f/255.0f, 193.0f/255.0f, 244.0f/255.0f);
+
+    game_state->specular_factor = 8.0f;
+    game_state->specular_strength = 0.5f;
+
     game_state->ambient = 0.1f;
-    game_state->ambient_color = VECTOR_3(191.0f/255.0f, 181.0f/255.0f, 121.0f/255.0f);
+    game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
     init_forward_renderer();
 
@@ -209,7 +223,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale    = VECTOR_3_ONE()
+        .scale    = VECTOR_3(1.0f, 0.4f, 1.0f)
     };
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
