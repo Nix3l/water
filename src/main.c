@@ -1,5 +1,4 @@
 // CURRENT:
-// TODO(nix3l): fix the debug settings menu (cant change wave params)
 // TODO(nix3l): finish the sum of sines implementation
 
 #include "game.h"
@@ -74,15 +73,15 @@ static void show_settings_window() {
         igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
 
         for(u32 i = 0; i < TOTAL_WAVES; i ++) {
-            wave_s wave = game_state->waves[i];
+            wave_s* wave = &game_state->waves[i];
             char* label = temp_mem;
             snprintf(label, 8, "wave %u", i);
             
             if(igTreeNode_Str(label)) {
-                igDragFloat("wavelength", &wave.wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-                igDragFloat("amplitude", &wave.amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-                igDragFloat("speed", &wave.speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-                igDragFloat("angle", &wave.angle, 0.01f, 0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("wavelength", &wave->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("amplitude", &wave->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("speed", &wave->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("angle", &wave->angle, 0.01f, 0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
                 igTreePop();
             }
         }
