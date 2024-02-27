@@ -18,15 +18,13 @@ uniform vec3 ambient_color;
 
 out vec4 out_color;
 
-// TODO(nix3l): specular factor
-
 void main(void) {
     // DIFFUSE LIGHTING
     float diffuse_factor = max(dot(fs_normals, -light_dir), 0.0);
 
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
-    vec3 reflected_light = reflect(light_dir, fs_normals);
+    vec3 reflected_light = normalize(reflect(light_dir, fs_normals));
     float specular_lighting = specular_strength * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
 
     // TOTAL LIGHTING

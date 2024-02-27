@@ -14,7 +14,7 @@ uniform mat4 projection_view;
 // because glsl is stupid when it comes to accessing structs in uniforms
 
 // WAVE DATA
-#define TOTAL_WAVES 8
+#define TOTAL_WAVES 16
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float speeds[TOTAL_WAVES];
@@ -32,23 +32,31 @@ struct wave_displacement_s {
 };
 
 // TODO(nix3l): look into out/inout function parameters to get rid of the return value here
-wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
+// NOTE(nix3l): look at https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
+wave_displacement_s calculate_wave_displacement(int index, vec2 position) {
     float angle = angles[index];
-    float x = position.x * cos(angle) - position.z * sin(angle);
-    float z = position.x * sin(angle) + position.z * cos(angle); 
+    float px = position.x * cos(angle) - position.y * sin(angle);
+    float pz = position.x * sin(angle) + position.y * cos(angle); 
 
     vec2 derivative = vec2(0.0);
     float displacement = 0.0;
 
-    float a = amplitudes[index] * pow(amplitude_factor, index);
-    float w = wavelengths[index] * pow(wavelength_factor, index);
-    float frequency = 2.0 / w;
-    float phase = speeds[index] * frequency;
-    displacement += a * sin(frequency * x + time * phase);
-    displacement += a * sin(frequency * z + time * phase);
+    float w = wavelengths[index]; // * pow(wavelength_factor, index);
+    float a = amplitudes[index]; // * pow(amplitude_factor, index);
+    for(int i = 0; i < 4; i ++) {
+        float frequency = 2.0 / w;
+        float phase = speeds[index] * frequency;
+        float x = frequency * px + time * phase;
+        float z = frequency * pz + time * phase;
 
-    derivative.x += a * frequency * cos(frequency * x + time * phase);
-    derivative.y += a * frequency * cos(frequency * z + time * phase);
+        displacement += a * sin(x);
+        displacement += a * sin(z);
+        derivative.x += a * frequency * cos(x);
+        derivative.y += a * frequency * cos(z);
+
+        w *= wavelength_factor;
+        a *= amplitude_factor;
+    }
 
     return wave_displacement_s(derivative, displacement);
 }
@@ -56,13 +64,13 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
 void main(void) {
     vec3 position = vs_position;
 
-    // TODO(nix3l): lighting + normals
-
     float total_displacement = 0.0f;
     vec2 total_derivative = vec2(0.0);
 
+    vec2 last_derivative = vec2(0.0);
     for(int i = 0; i < TOTAL_WAVES; i ++) {
-        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position);
+        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position.xz + last_derivative);
+        last_derivative = wave_displacement.derivative;
         total_displacement += wave_displacement.displacement;
         total_derivative += wave_displacement.derivative;
     }
@@ -70,11 +78,13 @@ void main(void) {
     position.y += total_displacement;
 
     // TODO(nix3l): i do not think this works lol
+    /*
     vec3 tangent = normalize(vec3(1.0f, total_derivative.x, 0.0f));
-    vec3 binormal = normalize(vec3(0.0f, total_derivative.y, -1.0f));
-    vec3 normal = cross(tangent, binormal);
+    vec3 binormal = normalize(vec3(0.0f, total_derivative.y, 1.0f));
+    vec3 normal = cross(binormal, tangent);
+    */
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);
     fs_position = vec3(transformation * vec4(position, 1.0));
-    fs_normals = normal;
+    fs_normals = vec3(-total_derivative.x, 1.0f, -total_derivative.y);
 }

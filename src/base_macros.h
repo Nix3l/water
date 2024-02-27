@@ -56,5 +56,8 @@
 #define MAT4_IDENTITY (glms_mat4_identity())
 
 #define RADIANS(_x) (glm_rad((_x)))
+#define DEGREES(_x) (glm_deg((_x)))
+
+#define RAND_IN_RANGE(_min, _max) ((_min) + ((float) rand() / (float) RAND_MAX) * ((_max) - (_min)))
 
 #endif

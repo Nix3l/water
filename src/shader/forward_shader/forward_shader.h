@@ -3,10 +3,13 @@
 
 #include "base.h"
 
+#define TOTAL_WAVES 16
+
 void init_forward_shader();
 
 typedef struct {
     // FORWARD SHADER
+
 
     // VERTEX
     GLuint time;
@@ -35,8 +38,6 @@ typedef struct {
     GLuint ambient;
     GLuint ambient_color;
 } forward_shader_uniforms_s;
-
-#define TOTAL_WAVES 8
 
 typedef struct {
     f32 wavelength;

@@ -1,8 +1,10 @@
 // CURRENT:
+// TODO(nix3l): set up loading/saving params to a file for easier iteration
 // TODO(nix3l): finish the sum of sines implementation
 
 #include "game.h"
 #include "util/log.h"
+#include "util/math.h"
 
 // TODO(nix3l): this is a slightly older version of cimgui
 // since i completely forget how i compiled the backends the first time around lol
@@ -25,6 +27,7 @@ static void show_debug_stats_window() {
     igText("delta time: %f\n", game_state->delta_time);
     igText("frame count: %u\n", game_state->frame_count);
     igText("fps: %u\n", game_state->fps);
+    igText("spf: %u\n", 1.0f / game_state->fps);
 
     igSeparator();
 
@@ -44,6 +47,16 @@ static void show_debug_stats_window() {
     igUnindent(12.0f);
 
     igEnd();
+}
+
+static void generate_waves() {
+    // TODO(nix3l): seed (probably)
+    for(int i = 0; i < TOTAL_WAVES; i ++) {
+        game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y); 
+        game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
+        game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
+        game_state->waves[i].angle      = RAND_IN_RANGE(game_state->angle_range.x, game_state->angle_range.y);
+    }
 }
 
 static void show_settings_window() {
@@ -68,7 +81,19 @@ static void show_settings_window() {
     igSeparator();
 
     // SHADER VARIABLES
-    
+
+    if(igButton("regenerate waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
+        generate_waves();
+
+    if(igCollapsingHeader_TreeNodeFlags("parameter ranges", ImGuiTreeNodeFlags_None)) {
+        igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("speed", game_state->speed_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("angle", game_state->angle_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    }
+
+    igSeparator();
+
     void* temp_mem = game_memory->transient_storage;
     MEM_ZERO(temp_mem, 8);
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
@@ -171,12 +196,12 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
-    for(int i = 0; i < TOTAL_WAVES; i ++) {
-        game_state->waves[i].wavelength = 3.0f;
-        game_state->waves[i].amplitude = 0.80f;
-        game_state->waves[i].speed = 3.0f;
-        game_state->waves[i].angle = i * 60.0f;
-    }
+    game_state->wavelength_range = VECTOR_2(1.5f, 8.0f);
+    game_state->amplitude_range  = VECTOR_2(0.1f, 0.8f);
+    game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
+    game_state->angle_range      = VECTOR_2(0.0f, 360.0f);
+
+    generate_waves();
 
     game_state->wavelength_factor = 1.18f;
     game_state->amplitude_factor = 0.78f;
@@ -190,20 +215,20 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         .near_plane = 0.001f,
         .far_plane  = 1000.0f,
 
-        .speed      = 12.0f,
+        .speed      = 24.0f,
         .sens       = 7500.0f
     };
 
     game_state->sun = (directional_light_s) {
         .color = VECTOR_3(1.0f, 1.0f, 1.0f),
         .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
-        .intensity = 1.2f
+        .intensity = 1.5f
     };
 
     game_state->water_color = VECTOR_3(86.0f/255.0f, 193.0f/255.0f, 244.0f/255.0f);
 
-    game_state->specular_factor = 8.0f;
-    game_state->specular_strength = 0.5f;
+    game_state->specular_factor = 2.0f;
+    game_state->specular_strength = 0.2f;
 
     game_state->ambient = 0.1f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
