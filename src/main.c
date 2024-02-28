@@ -27,7 +27,6 @@ static void show_debug_stats_window() {
     igText("delta time: %f\n", game_state->delta_time);
     igText("frame count: %u\n", game_state->frame_count);
     igText("fps: %u\n", game_state->fps);
-    igText("spf: %u\n", 1000.0f / game_state->fps);
 
     igSeparator();
 
@@ -94,7 +93,7 @@ static void show_settings_window() {
         igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("speed", game_state->speed_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("direction", game_state->direction_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("direction", game_state->direction_range.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
     }
 
     igSeparator();
@@ -128,6 +127,9 @@ static void show_settings_window() {
     igDragFloat("light intensity", &game_state->sun.intensity, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
 
     igColorEdit3("water color", game_state->water_color.raw, ImGuiColorEditFlags_None);
+
+    igColorEdit3("tip color", game_state->tip_color.raw, ImGuiColorEditFlags_None);
+    igDragFloat("tip attenuation", &game_state->tip_attenuation, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
 
     igDragFloat("specular factor", &game_state->specular_factor, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("specular strength", &game_state->specular_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -202,11 +204,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
-    game_state->wavelength_range = VECTOR_2(3.0f, 8.0f);
-    game_state->amplitude_range  = VECTOR_2(0.1f, 0.8f);
-    game_state->steepness_range  = VECTOR_2(0.0f, 1.0f);
+    game_state->wavelength_range = VECTOR_2(2.0f, 8.0f);
+    game_state->amplitude_range  = VECTOR_2(0.1f, 0.4f);
+    game_state->steepness_range  = VECTOR_2(0.8f, 1.2f);
     game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
-    game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
+    game_state->direction_range  = VECTOR_2(-0.8f, 0.8f);
 
     generate_waves();
 
@@ -215,7 +217,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     // RENDERER
     game_state->camera = (camera_s) {
-        .position   = VECTOR_3(0.0f, 12.0f, 0.0f),
+        .position   = VECTOR_3(0.0f, 16.0f, 0.0f),
         .rotation   = VECTOR_3_ZERO(),
         
         .fov        = 70.0f,
@@ -227,17 +229,20 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     };
 
     game_state->sun = (directional_light_s) {
-        .color = VECTOR_3(239.0f / 255.0f, 227.0f / 255.0f, 200.0f / 255.0f),
+        .color = VECTOR_RGB(239.0f, 227.0f, 200.0f),
         .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
         .intensity = 1.5f
     };
 
-    game_state->water_color = VECTOR_3(86.0f/255.0f, 193.0f/255.0f, 244.0f/255.0f);
+    game_state->water_color = VECTOR_RGB(86.0f, 193.0f, 244.0f);
 
-    game_state->specular_factor = 2.0f;
-    game_state->specular_strength = 0.2f;
+    game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
+    game_state->tip_attenuation = 4.0f;
 
-    game_state->ambient = 0.1f;
+    game_state->specular_factor = 4.0f;
+    game_state->specular_strength = 0.1f;
+
+    game_state->ambient = 0.15f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
     init_forward_renderer();
@@ -248,14 +253,14 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->test_entity.mesh = primitive_plane_mesh(
         VECTOR_3(-128.0f, 0.0f, -128.0f),
         (v2i) { .x = 512, .y = 512 },
-        VECTOR_2(512.0f, 512.0f),
+        VECTOR_2(256.0f, 256.0f),
         &game_state->mesh_arena
     );
 
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale    = VECTOR_3(1.0f, 0.2f, 1.0f)
+        .scale    = VECTOR_3(1.0f, 0.5f, 1.0f)
     };
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);

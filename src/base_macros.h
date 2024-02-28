@@ -52,6 +52,8 @@
 #define VECTOR_3_ONE() VECTOR_3(1.0f, 1.0f, 1.0f)
 #define VECTOR_4_ONE() VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f)
 
+#define VECTOR_RGB(_r, _g, _b) VECTOR_3((_r) / 255.0f, (_g) / 255.0f, (_b) / 255.0f)
+
 #define MAT3_IDENTITY (glms_mat3_identity())
 #define MAT4_IDENTITY (glms_mat4_identity())
 

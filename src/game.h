@@ -59,6 +59,9 @@ typedef struct {
 
     v3f water_color;
 
+    v3f tip_color;
+    f32 tip_attenuation;
+
     f32 specular_factor;
     f32 specular_strength;
 

@@ -32,6 +32,9 @@ typedef struct {
 
     GLuint water_color;
 
+    GLuint tip_color;
+    GLuint tip_attenuation;
+
     GLuint specular_factor;
     GLuint specular_strength;
     GLuint camera_pos;

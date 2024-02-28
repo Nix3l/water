@@ -40,6 +40,9 @@ static void load_uniforms(void* data) {
     
     shader_load_vec3(uniforms->water_color, game_state->water_color);
 
+    shader_load_vec3(uniforms->tip_color, game_state->tip_color);
+    shader_load_float(uniforms->tip_attenuation, game_state->tip_attenuation);
+
     shader_load_float(uniforms->specular_factor, game_state->specular_factor);
     shader_load_float(uniforms->specular_strength, game_state->specular_strength);
     shader_load_vec3(uniforms->camera_pos, game_state->camera.position);
@@ -79,6 +82,9 @@ void init_forward_shader() {
     uniforms->light_intensity   = shader_get_uniform(shader, "light_intensity");
 
     uniforms->water_color       = shader_get_uniform(shader, "water_color");
+
+    uniforms->tip_color         = shader_get_uniform(shader, "tip_color");
+    uniforms->tip_attenuation   = shader_get_uniform(shader, "tip_attenuation");
 
     uniforms->specular_factor   = shader_get_uniform(shader, "specular_factor");
     uniforms->specular_strength = shader_get_uniform(shader, "specular_strength");
