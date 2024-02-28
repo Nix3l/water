@@ -27,7 +27,7 @@ static void show_debug_stats_window() {
     igText("delta time: %f\n", game_state->delta_time);
     igText("frame count: %u\n", game_state->frame_count);
     igText("fps: %u\n", game_state->fps);
-    igText("spf: %u\n", 1.0f / game_state->fps);
+    igText("spf: %u\n", 1000.0f / game_state->fps);
 
     igSeparator();
 
@@ -54,6 +54,7 @@ static void generate_waves() {
     for(int i = 0; i < TOTAL_WAVES; i ++) {
         game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y); 
         game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
+        game_state->waves[i].steepness  = RAND_IN_RANGE(game_state->steepness_range.x, game_state->steepness_range.y);
         game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
         game_state->waves[i].direction  = VECTOR_2(
                 RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
@@ -91,6 +92,7 @@ static void show_settings_window() {
     if(igCollapsingHeader_TreeNodeFlags("parameter ranges", ImGuiTreeNodeFlags_None)) {
         igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("speed", game_state->speed_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("direction", game_state->direction_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     }
@@ -111,6 +113,7 @@ static void show_settings_window() {
             if(igTreeNode_Str(label)) {
                 igDragFloat("wavelength", &wave->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("amplitude", &wave->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("steepness", &wave->steepness, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("speed", &wave->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat2("direction", wave->direction.raw, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
                 igTreePop();
@@ -201,6 +204,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->wavelength_range = VECTOR_2(3.0f, 8.0f);
     game_state->amplitude_range  = VECTOR_2(0.1f, 0.8f);
+    game_state->steepness_range  = VECTOR_2(0.0f, 1.0f);
     game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
     game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 

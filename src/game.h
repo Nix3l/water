@@ -53,6 +53,7 @@ typedef struct {
 
     v2f wavelength_range;
     v2f amplitude_range;
+    v2f steepness_range;
     v2f speed_range;
     v2f direction_range;
 

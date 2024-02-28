@@ -17,6 +17,7 @@ uniform mat4 projection_view;
 #define TOTAL_WAVES 16
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
+uniform float steepnesses[TOTAL_WAVES];
 uniform float speeds[TOTAL_WAVES];
 uniform vec2 directions[TOTAL_WAVES];
 
@@ -61,15 +62,15 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
     vec2 dir = normalize(directions[index]);
     float xz = dir.x * position.x + dir.y * position.z;
 
-    float wavelength = wavelengths[index];
-    float amplitude = amplitudes[index];
+    float wavelength = wavelengths[index] * pow(wavelength_factor, index);
+    float amplitude = amplitudes[index] * pow(amplitude_factor, index);
     float frequency = 2.0 / wavelength;
     float phase = speeds[index] * frequency;
     float phi = time * phase;
+    float steepness = steepnesses[index] / (frequency * amplitude * TOTAL_WAVES);
 
-    // TODO(nix3l): steepness
-    vec3 displacement = calculate_gerstner(xz, dir, frequency, phi, amplitude, 1.0);
-    vec3 normal       = calculate_gerstner_normal(xz, dir, frequency, phi, amplitude, 1.0);
+    vec3 displacement = calculate_gerstner(xz, dir, frequency, phi, amplitude, steepness);
+    vec3 normal       = calculate_gerstner_normal(xz, dir, frequency, phi, amplitude, steepness);
 
     return wave_displacement_s(displacement, normal);
 }

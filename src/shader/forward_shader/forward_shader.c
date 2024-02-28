@@ -25,6 +25,7 @@ static void load_uniforms(void* data) {
 
         shader_load_float(uniforms->wavelength + i, wave.wavelength);
         shader_load_float(uniforms->amplitude  + i, wave.amplitude);
+        shader_load_float(uniforms->steepness  + i, wave.steepness);
         shader_load_float(uniforms->speed      + i, wave.speed);
         shader_load_vec2 (uniforms->direction  + i, wave.direction);
     }
@@ -66,6 +67,7 @@ void init_forward_shader() {
 
     uniforms->wavelength        = shader_get_uniform(shader, "wavelengths[0]");
     uniforms->amplitude         = shader_get_uniform(shader, "amplitudes[0]");
+    uniforms->steepness         = shader_get_uniform(shader, "steepnesses[0]");
     uniforms->speed             = shader_get_uniform(shader, "speeds[0]");
     uniforms->direction         = shader_get_uniform(shader, "directions[0]");
     uniforms->wavelength_factor = shader_get_uniform(shader, "wavelength_factor");
