@@ -55,7 +55,10 @@ static void generate_waves() {
         game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y); 
         game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
         game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
-        game_state->waves[i].angle      = RAND_IN_RANGE(game_state->angle_range.x, game_state->angle_range.y);
+        game_state->waves[i].direction  = VECTOR_2(
+                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
+                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
+            );
     }
 }
 
@@ -89,7 +92,7 @@ static void show_settings_window() {
         igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("speed", game_state->speed_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("angle", game_state->angle_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("direction", game_state->direction_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     }
 
     igSeparator();
@@ -109,7 +112,7 @@ static void show_settings_window() {
                 igDragFloat("wavelength", &wave->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("amplitude", &wave->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("speed", &wave->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-                igDragFloat("angle", &wave->angle, 0.01f, 0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat2("direction", wave->direction.raw, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
                 igTreePop();
             }
         }
@@ -186,7 +189,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     void* memory = game_memory->permenant_storage + sizeof(game_state_s);
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
-    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
+    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -196,10 +199,10 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_forward_shader();
 
-    game_state->wavelength_range = VECTOR_2(1.5f, 8.0f);
+    game_state->wavelength_range = VECTOR_2(3.0f, 8.0f);
     game_state->amplitude_range  = VECTOR_2(0.1f, 0.8f);
     game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
-    game_state->angle_range      = VECTOR_2(0.0f, 360.0f);
+    game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 
     generate_waves();
 
@@ -220,7 +223,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     };
 
     game_state->sun = (directional_light_s) {
-        .color = VECTOR_3(1.0f, 1.0f, 1.0f),
+        .color = VECTOR_3(239.0f / 255.0f, 227.0f / 255.0f, 200.0f / 255.0f),
         .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
         .intensity = 1.5f
     };
@@ -241,14 +244,14 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->test_entity.mesh = primitive_plane_mesh(
         VECTOR_3(-128.0f, 0.0f, -128.0f),
         (v2i) { .x = 512, .y = 512 },
-        VECTOR_2(256.0f, 256.0f),
+        VECTOR_2(512.0f, 512.0f),
         &game_state->mesh_arena
     );
 
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale    = VECTOR_3(1.0f, 0.4f, 1.0f)
+        .scale    = VECTOR_3(1.0f, 0.2f, 1.0f)
     };
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);

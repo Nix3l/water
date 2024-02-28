@@ -54,7 +54,7 @@ typedef struct {
     v2f wavelength_range;
     v2f amplitude_range;
     v2f speed_range;
-    v2f angle_range;
+    v2f direction_range;
 
     v3f water_color;
 

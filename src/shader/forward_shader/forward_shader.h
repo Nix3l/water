@@ -20,7 +20,7 @@ typedef struct {
     GLuint wavelength;
     GLuint amplitude;
     GLuint speed;
-    GLuint angle;
+    GLuint direction;
     GLuint wavelength_factor;
     GLuint amplitude_factor;
 
@@ -44,7 +44,7 @@ typedef struct {
     f32 amplitude;
 
     f32 speed;
-    f32 angle;
+    v2f direction;
 } wave_s;
 
 #endif

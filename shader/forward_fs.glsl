@@ -20,7 +20,7 @@ out vec4 out_color;
 
 void main(void) {
     // DIFFUSE LIGHTING
-    float diffuse_factor = max(dot(fs_normals, -light_dir), 0.0);
+    float diffuse_factor = max(dot(fs_normals, -light_dir), ambient);
 
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
