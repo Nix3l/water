@@ -3,13 +3,12 @@
 
 #include "base.h"
 
-#define TOTAL_WAVES 16
+#define TOTAL_WAVES 12
 
 void init_forward_shader();
 
 typedef struct {
     // FORWARD SHADER
-
 
     // VERTEX
     GLuint time;
@@ -22,8 +21,6 @@ typedef struct {
     GLuint steepness;
     GLuint speed;
     GLuint direction;
-    GLuint wavelength_factor;
-    GLuint amplitude_factor;
 
     // FRAGMENT
     GLuint light_dir;

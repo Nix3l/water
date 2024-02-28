@@ -35,10 +35,12 @@
 #define CLAMP_MAX(_x, _max) MIN(_x, _max)
 #define CLAMP_MIN(_x, _min) MAX(_x, _min)
 
+#define RAND_IN_RANGE(_min, _max) ((_min) + ((float) rand() / (float) RAND_MAX) * ((_max) - (_min)))
+
 #include <string.h>
 #define MEM_ZERO(_ptr, _num) memset((_ptr), 0, (_num))
-#define MEM_ZERO_STRUCT(_ptr) MEM_ZERO(_ptr, sizeof(*(_ptr)))
-#define MEM_ZERO_ARRAY(_ptr) MEM_ZERO(_ptr, sizeof((_ptr)))
+#define MEM_ZERO_STRUCT(_ptr) MEM_ZERO((_ptr), sizeof(*(_ptr)))
+#define MEM_ZERO_ARRAY(_ptr) MEM_ZERO((_ptr), sizeof((_ptr)))
 
 #define VECTOR_2(_x, _y) (v2f) { .x = (_x), .y = (_y) }
 #define VECTOR_3(_x, _y, _z) (v3f) { .x = (_x), .y = (_y), .z = (_z) }
@@ -59,7 +61,5 @@
 
 #define RADIANS(_x) (glm_rad((_x)))
 #define DEGREES(_x) (glm_deg((_x)))
-
-#define RAND_IN_RANGE(_min, _max) ((_min) + ((float) rand() / (float) RAND_MAX) * ((_max) - (_min)))
 
 #endif

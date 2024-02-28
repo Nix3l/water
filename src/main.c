@@ -48,11 +48,33 @@ static void show_debug_stats_window() {
     igEnd();
 }
 
-static void generate_waves() {
+static void generate_waves_random() {
     // TODO(nix3l): seed (probably)
     for(int i = 0; i < TOTAL_WAVES; i ++) {
-        game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y); 
+        game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y);
         game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
+        game_state->waves[i].steepness  = RAND_IN_RANGE(game_state->steepness_range.x, game_state->steepness_range.y);
+        game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
+        game_state->waves[i].direction  = VECTOR_2(
+                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
+                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
+            );
+    }
+}
+
+static void generate_waves() {
+    f32 w = game_state->waves[0].wavelength;
+    f32 a = game_state->waves[0].amplitude;
+    game_state->waves[0].direction  = VECTOR_2(
+            RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
+            RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
+        );
+    for(int i = 1; i < TOTAL_WAVES; i ++) {
+        w *= game_state->wavelength_factor;
+        a *= game_state->amplitude_factor;
+
+        game_state->waves[i].wavelength = w;
+        game_state->waves[i].amplitude  = a;
         game_state->waves[i].steepness  = RAND_IN_RANGE(game_state->steepness_range.x, game_state->steepness_range.y);
         game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
         game_state->waves[i].direction  = VECTOR_2(
@@ -85,10 +107,15 @@ static void show_settings_window() {
 
     // SHADER VARIABLES
 
-    if(igButton("regenerate waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
+    if(igButton("regenerate random waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
+        generate_waves_random();
+    if(igButton("generate waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
         generate_waves();
 
     if(igCollapsingHeader_TreeNodeFlags("parameter ranges", ImGuiTreeNodeFlags_None)) {
+        igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+
         igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -101,9 +128,6 @@ static void show_settings_window() {
     void* temp_mem = game_memory->transient_storage;
     MEM_ZERO(temp_mem, 8);
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
-        igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-
         for(u32 i = 0; i < TOTAL_WAVES; i ++) {
             wave_s* wave = &game_state->waves[i];
             char* label = temp_mem;
@@ -198,7 +222,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
-    create_window(1280, 720, "water");
+    create_window(1600, 900, "water");
     init_input();
 
     // SHADERS
@@ -210,10 +234,17 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
     game_state->direction_range  = VECTOR_2(-0.8f, 0.8f);
 
+    game_state->waves[0] = (wave_s) {
+        .wavelength = 8.0f,
+        .amplitude = 3.0f,
+        .steepness = 2.0f,
+        .speed = 10.0f,
+    };
+
     generate_waves();
 
-    game_state->wavelength_factor = 1.18f;
-    game_state->amplitude_factor = 0.78f;
+    game_state->wavelength_factor = 1 / 1.18f;
+    game_state->amplitude_factor = 0.70f;
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -237,7 +268,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->water_color = VECTOR_RGB(86.0f, 193.0f, 244.0f);
 
     game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
-    game_state->tip_attenuation = 4.0f;
+    game_state->tip_attenuation = 10.0f;
 
     game_state->specular_factor = 4.0f;
     game_state->specular_strength = 0.1f;
@@ -251,9 +282,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_imgui();
 
     game_state->test_entity.mesh = primitive_plane_mesh(
-        VECTOR_3(-128.0f, 0.0f, -128.0f),
-        (v2i) { .x = 512, .y = 512 },
-        VECTOR_2(256.0f, 256.0f),
+        VECTOR_3(-1024.0f, 0.0f, -1024.0f),
+        (v2i) { .x = 4096, .y = 4096 },
+        VECTOR_2(2048.0f, 2048.0f),
         &game_state->mesh_arena
     );
 
