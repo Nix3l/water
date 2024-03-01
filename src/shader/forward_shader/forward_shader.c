@@ -44,6 +44,8 @@ static void load_uniforms(void* data) {
     shader_load_float(uniforms->specular_strength, game_state->specular_strength);
     shader_load_vec3(uniforms->camera_pos, game_state->camera.position);
 
+    shader_load_float(uniforms->refractive_index, game_state->refractive_index);
+
     shader_load_float(uniforms->ambient, game_state->ambient);
     shader_load_vec3(uniforms->ambient_color, game_state->ambient_color);
 }
@@ -85,6 +87,8 @@ void init_forward_shader() {
     uniforms->specular_strength = shader_get_uniform(shader, "specular_strength");
     uniforms->camera_pos        = shader_get_uniform(shader, "camera_pos");
     
+    uniforms->refractive_index  = shader_get_uniform(shader, "refractive_index");
+
     uniforms->ambient           = shader_get_uniform(shader, "ambient");
     uniforms->ambient_color     = shader_get_uniform(shader, "ambient_color");
 }

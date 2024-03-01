@@ -29,7 +29,7 @@ char* platform_load_text_from_file(char* filename, usize* out_length, arena_s* a
         return NULL;
     }
 
-    if(arena->size + length >= arena->capacity && !arena->expandable) {
+    if(!arena_fits(arena, length)) {
         LOG_ERR("not enough space in arena to output contents of file [%s]\n", filename);
         fclose(file);
         return NULL;
@@ -58,7 +58,7 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
         return NULL;
     }
 
-    // TODO(nix3l): comments to explain this
+    // TODO(nix3l): error checking for failures in the std functions
 
     usize num_lines = 0;
 
@@ -67,6 +67,8 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
 
     char* temp_mem = game_memory->transient_storage;
 
+    // load the entire file into transient memory
+    // and get the number of new lines in the process
     usize length;
     for(length = 0; !feof(file); length ++)
         if((temp_mem[length] = fgetc(file)) == '\n') num_lines ++;
@@ -74,8 +76,6 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
     temp_mem[length + 1] = '\0';
 
     rewind(file);
-
-    LOG("num_lines is %lu\n", num_lines);
 
     char** output = arena_push(arena, num_lines * sizeof(char*));
     char* file_contents = arena_push(arena, length + 1);
@@ -85,14 +85,16 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
     char* curr_str_view = file_contents;
     output[0] = file_contents;
     for(usize i = 1; i < num_lines; i ++) {
+        // loop through the file and add a pointer to wherever
+        // a new line is found
         for(;;) {
             if(*curr_str_view == '\n') {
                 output[i] = curr_str_view + 1;
+                // change the \n to \0 to make the strings separate in memory
                 *curr_str_view = '\0';
                 break;
             }
 
-            LOG("%s\n", curr_str_view);
             curr_str_view++;
         }
     }
@@ -140,7 +142,7 @@ void* platform_load_file(char* filepath, usize* buff_length, arena_s* arena) {
 
 char* platform_get_file_extension(char* filepath) {
     char* extension = strrchr(filepath, '.');
-    return extension ? extension : NULL;
+    return extension;
 }
 
 // NOTE(nix3l): unsure whether using the std provided string functions is good or not

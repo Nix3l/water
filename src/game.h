@@ -65,6 +65,8 @@ typedef struct {
     f32 specular_factor;
     f32 specular_strength;
 
+    f32 refractive_index;
+
     f32 ambient;
     v3f ambient_color;
 

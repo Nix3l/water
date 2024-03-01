@@ -1,4 +1,5 @@
 // CURRENT:
+// TODO(nix3l): set up some post processing to make the scene look nicer
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
 
 #include "game.h"
@@ -48,7 +49,6 @@ static void show_debug_stats_window() {
 }
 
 static void generate_waves_random() {
-    // TODO(nix3l): seed (probably)
     for(int i = 0; i < TOTAL_WAVES; i ++) {
         game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y);
         game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
@@ -156,6 +156,7 @@ static void show_settings_window() {
 
     igDragFloat("specular factor", &game_state->specular_factor, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("specular strength", &game_state->specular_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("refractive index", &game_state->refractive_index, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     
     igDragFloat("ambient", &game_state->ambient, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("ambient color", game_state->ambient_color.raw, ImGuiColorEditFlags_None);
@@ -217,7 +218,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     void* memory = game_memory->permenant_storage + sizeof(game_state_s);
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
-    game_state->shader_arena = partition_permenant_memory(&memory, MEGABYTES(8), &remaining_memory);
+    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -229,26 +230,26 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->wavelength_range = VECTOR_2(2.0f, 8.0f);
     game_state->amplitude_range  = VECTOR_2(0.1f, 0.4f);
-    game_state->steepness_range  = VECTOR_2(0.8f, 1.2f);
-    game_state->speed_range      = VECTOR_2(0.5f, 5.0f);
-    game_state->direction_range  = VECTOR_2(-0.8f, 0.8f);
+    game_state->steepness_range  = VECTOR_2(0.8f, 1.4f);
+    game_state->speed_range      = VECTOR_2(1.0f, 8.0f);
+    game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 
     game_state->waves[0] = (wave_s) {
-        .wavelength = 8.0f,
-        .amplitude = 3.0f,
-        .steepness = 2.0f,
-        .speed = 10.0f,
+        .wavelength = 48.0f,
+        .amplitude = 5.0f,
+        .steepness = 5.0f,
+        .speed = 15.0f,
     };
 
     generate_waves();
 
-    game_state->wavelength_factor = 1 / 1.18f;
-    game_state->amplitude_factor = 0.70f;
+    game_state->wavelength_factor = 0.835f;
+    game_state->amplitude_factor = 0.720f;
 
     // RENDERER
     game_state->camera = (camera_s) {
-        .position   = VECTOR_3(0.0f, 16.0f, 0.0f),
-        .rotation   = VECTOR_3_ZERO(),
+        .position   = VECTOR_3(0.0f, 12.0f, 0.0f),
+        .rotation   = VECTOR_3(0.0f, 180.0f, 0.0f),
         
         .fov        = 70.0f,
         .near_plane = 0.001f,
@@ -261,18 +262,20 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->sun = (directional_light_s) {
         .color = VECTOR_RGB(239.0f, 227.0f, 200.0f),
         .direction = VECTOR_3(-0.1f, -0.3f, 0.04f),
-        .intensity = 1.5f
+        .intensity = 0.9f
     };
 
     game_state->water_color = VECTOR_RGB(86.0f, 193.0f, 244.0f);
 
     game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
-    game_state->tip_attenuation = 10.0f;
+    game_state->tip_attenuation = 25.0f;
 
-    game_state->specular_factor = 4.0f;
-    game_state->specular_strength = 0.1f;
+    game_state->specular_factor = 2.0f;
+    game_state->specular_strength = 2.5f;
 
-    game_state->ambient = 0.15f;
+    game_state->refractive_index = 2.0f;
+
+    game_state->ambient = 0.24f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
     init_forward_renderer();
@@ -281,8 +284,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_imgui();
 
     game_state->test_entity.mesh = primitive_plane_mesh(
-        VECTOR_3(-1024.0f, 0.0f, -1024.0f),
-        (v2i) { .x = 4096, .y = 4096 },
+        VECTOR_3(-1024.0f, 0.0f, -12.0f),
+        (v2i) { .x = 2048, .y = 2048 },
         VECTOR_2(2048.0f, 2048.0f),
         &game_state->mesh_arena
     );
@@ -290,13 +293,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->test_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale    = VECTOR_3(1.0f, 0.5f, 1.0f)
+        .scale    = VECTOR_3(1.0f, 0.7f, 1.0f)
     };
-
-    usize num_lines;
-    char** shader = platform_load_lines_from_file("params.txt", &num_lines, &game_state->shader_arena);
-    for(usize i = 0; i < num_lines; i ++)
-        LOG("%lu > %s\n", i, shader[i]);
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 }

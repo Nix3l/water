@@ -35,7 +35,9 @@ typedef struct {
     GLuint specular_factor;
     GLuint specular_strength;
     GLuint camera_pos;
-    
+
+    GLuint refractive_index;
+
     GLuint ambient;
     GLuint ambient_color;
 } forward_shader_uniforms_s;
