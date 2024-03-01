@@ -13,7 +13,7 @@
 // for now however i can do the hacky approach
 
 char* platform_load_text_from_file(char* filename, usize* out_length, arena_s* arena) {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen(filename, "r");
     if(!file) {
         LOG_ERR("failed to open [%s]: err %d\n%s\n", filename, errno, strerror(errno));
         return NULL;
@@ -48,6 +48,56 @@ char* platform_load_text_from_file(char* filename, usize* out_length, arena_s* a
     if(out_length) *out_length = length + 1;
 
     fclose(file);
+    return output;
+}
+
+char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena_s* arena) {
+    FILE* file = fopen(filepath, "r");
+    if(!file) {
+        LOG_ERR("failed to open [%s]: err %d\n%s\n", filepath, errno, strerror(errno));
+        return NULL;
+    }
+
+    // TODO(nix3l): comments to explain this
+
+    usize num_lines = 0;
+
+    // NOTE(nix3l): not trying to be particularly fast with this
+    // as i just want to ge this up and running at the moment
+
+    char* temp_mem = game_memory->transient_storage;
+
+    usize length;
+    for(length = 0; !feof(file); length ++)
+        if((temp_mem[length] = fgetc(file)) == '\n') num_lines ++;
+
+    temp_mem[length + 1] = '\0';
+
+    rewind(file);
+
+    LOG("num_lines is %lu\n", num_lines);
+
+    char** output = arena_push(arena, num_lines * sizeof(char*));
+    char* file_contents = arena_push(arena, length + 1);
+    strncpy(file_contents, temp_mem, length);
+    file_contents[length + 1] = '\0';
+
+    char* curr_str_view = file_contents;
+    output[0] = file_contents;
+    for(usize i = 1; i < num_lines; i ++) {
+        for(;;) {
+            if(*curr_str_view == '\n') {
+                output[i] = curr_str_view + 1;
+                *curr_str_view = '\0';
+                break;
+            }
+
+            LOG("%s\n", curr_str_view);
+            curr_str_view++;
+        }
+    }
+
+    if(out_num_lines) *out_num_lines = num_lines;
     return output;
 }
 

@@ -3,7 +3,7 @@
 
 #include "base.h"
 
-#define TOTAL_WAVES 12
+#define TOTAL_WAVES 16
 
 void init_forward_shader();
 

@@ -14,7 +14,7 @@ uniform mat4 projection_view;
 // because glsl is stupid when it comes to accessing structs in uniforms
 
 // WAVE DATA
-#define TOTAL_WAVES 12
+#define TOTAL_WAVES 16
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float steepnesses[TOTAL_WAVES];

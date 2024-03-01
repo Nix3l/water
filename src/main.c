@@ -1,6 +1,5 @@
 // CURRENT:
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
-// TODO(nix3l): finish the sum of sines implementation
 
 #include "game.h"
 #include "util/log.h"
@@ -218,7 +217,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     void* memory = game_memory->permenant_storage + sizeof(game_state_s);
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
-    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
+    game_state->shader_arena = partition_permenant_memory(&memory, MEGABYTES(8), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -293,6 +292,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         .rotation = VECTOR_3_ZERO(),
         .scale    = VECTOR_3(1.0f, 0.5f, 1.0f)
     };
+
+    usize num_lines;
+    char** shader = platform_load_lines_from_file("params.txt", &num_lines, &game_state->shader_arena);
+    for(usize i = 0; i < num_lines; i ++)
+        LOG("%lu > %s\n", i, shader[i]);
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 }

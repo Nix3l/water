@@ -14,6 +14,10 @@
 // length of the file is returned in length_read. can be null if not needed
 char* platform_load_text_from_file(char* filepath, usize* length_read, arena_s* arena);
 
+// returns all the lines in a given filepath as a 2-d array
+// number of files is returned in num_lines. can be null if not needed
+char** platform_load_lines_from_file(char* filepath, usize* num_lines, arena_s* arena);
+
 // reads a file and loads all its bytes into memory
 // length of the file read is returned in buff_length. may be null if not needed
 void* platform_load_file(char* filepath, usize* buff_length, arena_s* arena);
