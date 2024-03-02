@@ -99,7 +99,7 @@ void main(void) {
 
     vec3 last_normal = vec3(0.0);
     for(int i = 0; i < TOTAL_WAVES; i ++) {
-        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position + last_normal);
+        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position - last_normal);
         last_normal = wave_displacement.normal;
         total_displacement += wave_displacement.displacement;
         total_normal += wave_displacement.normal;

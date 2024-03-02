@@ -6,7 +6,7 @@ static void glfw_error_callback(int error, const char* text) {
     LOG_ERR("GLFW ERROR [%d]: `%s`\n", error, text);
 }
 
-void create_window(u16 width, u16 height, char* title) {
+void create_window(u32 width, u32 height, char* title) {
     ASSERT(glfwInit());
 
     // hint to opengl v3.3 core
@@ -41,6 +41,6 @@ void window_set_cursor_visibility(window_s* window, bool visibility) {
 }
 
 void destroy_window() {
-    glfwTerminate();
     glfwDestroyWindow(game_state->window.glfw_window);
+    glfwTerminate();
 }

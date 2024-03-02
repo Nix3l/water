@@ -37,12 +37,14 @@ static void show_debug_stats_window() {
     igText("permenant memory in use: %u/%u\n",
             sizeof(game_state_s) + 
             game_state->shader_arena.size + 
-            game_state->mesh_arena.size,
+            game_state->mesh_arena.size +
+            game_state->fbo_arena.size,
             game_memory->permenant_storage_size);
     igIndent(12.0f);
     igText("of which state: %u\n", sizeof(game_state_s));
     igText("of which shaders: %u/%u\n", game_state->shader_arena.size, game_state->shader_arena.capacity);
     igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
+    igText("of which framebuffers: %u/%u\n", game_state->fbo_arena.size, game_state->fbo_arena.capacity);
     igUnindent(12.0f);
 
     igEnd();
@@ -219,6 +221,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
     game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
+    game_state->fbo_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -302,6 +305,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 static void terminate_game() {
     destroy_mesh(&game_state->test_entity.mesh);
 
+    destroy_fbo(&game_state->forward_renderer.framebuffer);
     destroy_shader(&game_state->forward_shader);
     
     shutdown_imgui();
@@ -320,6 +324,8 @@ int main(void) {
 
         update_camera(&game_state->camera);
         render_forward(&game_state->test_entity);
+
+        fbo_copy_texture_to_screen(&game_state->forward_renderer.framebuffer, GL_COLOR_ATTACHMENT0);
 
         update_imgui();
         show_debug_stats_window();
