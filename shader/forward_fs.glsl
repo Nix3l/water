@@ -32,11 +32,13 @@ void main(void) {
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
     vec3 reflected_light = normalize(reflect(light_dir, fs_normals));
-    float specular_lighting = specular_strength * diffuse_factor * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
+    float specular_lighting = specular_strength * ndotl * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
 
     // SCHLICK FRESNEL
     float r0 = pow((refractive_index - 1) / (refractive_index + 1), 2);
-    float fresnel_factor = r0 + (1 - r0) * pow(1 - ndotl, 5);
+    vec3 halfway_dir = camera_dir + light_dir;
+    float exponential = pow(1 - max(dot(fs_normals, halfway_dir), 0.0), 5);
+    float fresnel_factor = r0 + (1 - r0) * exponential;
 
     specular_lighting *= fresnel_factor;
 

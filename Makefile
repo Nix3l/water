@@ -20,7 +20,7 @@ LIBRARIES := -Lthird-party \
 DEFINES := -DENABLE_ASSERT=1
 WARNINGS := -Wall -Wextra
 
-INCLUDE_DIRS := -Isrc -Ithird-party -Iplatform
+INCLUDE_DIRS := -Isrc -Ithird-party
 
 C_SOURCES 	= $(shell find src -iname *.c)
 C_HEADERS 	= $(shell find src -iname *.h)

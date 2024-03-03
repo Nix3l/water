@@ -43,7 +43,7 @@ void fbo_create_texture(fbo_s* fbo, GLenum attachment_type, GLint internal_forma
         }
     }
 
-    if(texture == NULL) {
+    if(!texture) {
         LOG_ERR("not enough space in fbo for another texture! num_textures: [%lu]\n", fbo->num_textures);
         return;
     }
@@ -57,6 +57,8 @@ void fbo_create_texture(fbo_s* fbo, GLenum attachment_type, GLint internal_forma
 
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
+    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, fbo->width, fbo->height, 0, format, GL_FLOAT, NULL);
+
     // NOTE(nix3l): for now hard code these to GL_NEAREST
     // in the future (if i reuse this code) i would want to
     // have a way to set the texture parameters through a function
@@ -64,16 +66,15 @@ void fbo_create_texture(fbo_s* fbo, GLenum attachment_type, GLint internal_forma
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, fbo->width, fbo->height, 0, format, GL_FLOAT, NULL);
-    glFramebufferTexture2D(GL_TEXTURE_2D, attachment_type, GL_TEXTURE_2D, texture->id, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment_type, GL_TEXTURE_2D, texture->id, 0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void fbo_copy_texture_to_screen(fbo_s* fbo, GLenum src_att) {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id);
 
     glReadBuffer(src_att);
 

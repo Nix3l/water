@@ -1,5 +1,6 @@
 #include "renderer.h"
 
+#include "util/log.h"
 #include "game.h"
 
 void init_forward_renderer() {
@@ -27,9 +28,9 @@ void render_forward(entity_s* entity) {
     fbo_s* framebuffer = &renderer->framebuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->id);
 
-    glDrawBuffers(framebuffer->num_textures - 1, framebuffer->attachments);
+    glDrawBuffers(framebuffer->num_textures, framebuffer->attachments);
 
-    v4f bg = game_state->forward_renderer.background_color;
+    v4f bg = renderer->background_color;
     glClearColor(bg.x, bg.y, bg.z, bg.w);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -58,6 +59,9 @@ void render_forward(entity_s* entity) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     shader_stop();
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

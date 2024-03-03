@@ -256,7 +256,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         
         .fov        = 70.0f,
         .near_plane = 0.001f,
-        .far_plane  = 1000.0f,
+        .far_plane  = 2000.0f,
 
         .speed      = 24.0f,
         .sens       = 7500.0f
@@ -273,10 +273,10 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
     game_state->tip_attenuation = 25.0f;
 
-    game_state->specular_factor = 2.0f;
-    game_state->specular_strength = 2.5f;
+    game_state->specular_factor = 8.0f;
+    game_state->specular_strength = 6.0f;
 
-    game_state->refractive_index = 2.0f;
+    game_state->refractive_index = 1.33f;
 
     game_state->ambient = 0.24f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
