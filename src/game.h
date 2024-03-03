@@ -10,9 +10,9 @@
 #include "io/input.h"
 #include "mesh/mesh.h"
 #include "shader/shader.h"
-#include "shader/forward_shader/forward_shader.h"
+#include "shader/water_shader/water_shader.h"
 #include "entity/entity.h"
-#include "render/renderer.h"
+#include "render/water_renderer.h"
 #include "camera/camera.h"
 #include "light/light.h"
 
@@ -44,8 +44,8 @@ typedef struct {
     u32 fps;
 
     // SHADERS
-    forward_shader_uniforms_s forward_shader_uniforms;
-    shader_s forward_shader;
+    water_shader_uniforms_s water_shader_uniforms;
+    shader_s water_shader;
     
     // WATER SHADER VARIABLES
     wave_s waves[TOTAL_WAVES];
@@ -74,14 +74,15 @@ typedef struct {
     // RENDERER
     camera_s camera;
     directional_light_s sun;
-    forward_renderer_s forward_renderer;
+
+    water_renderer_s water_renderer;
 
     // IMGUI
     struct ImGuiContext* imgui_ctx;
     struct ImGuiIO* imgui_io;
 
     // OTHER
-    entity_s test_entity;
+    entity_s water_entity;
 
     bool show_debug_stats_window;
     bool show_settings_window;

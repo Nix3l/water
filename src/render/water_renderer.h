@@ -1,5 +1,5 @@
-#ifndef RENDERER_H
-#define RENDERER_H
+#ifndef WATER_RENDERER_H
+#define WATER_RENDERER_H
 
 #include "entity/entity.h"
 #include "shader/shader.h"
@@ -14,10 +14,10 @@ typedef struct {
     fbo_s framebuffer;
 
     bool render_wireframe;
-} forward_renderer_s;
+} water_renderer_s;
 
-void init_forward_renderer();
+void init_water_renderer();
 
-void render_forward(entity_s* entity);
+void render_water(entity_s* entity);
 
 #endif

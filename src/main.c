@@ -11,7 +11,6 @@
 // at some point probably try to compile the new backends. the new version of the main lib is still here though
 
 #include "platform/platform.h"
-#include "shader/forward_shader/forward_shader.h"
 
 game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
@@ -96,13 +95,13 @@ static void show_settings_window() {
     igDragFloat("sensetivity", &game_state->camera.sens, 10.0f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
 
     // WATER TRANSFORM
-    igDragFloat3("scale", game_state->test_entity.transform.scale.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);;
+    igDragFloat3("scale", game_state->water_entity.transform.scale.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);;
 
     igSeparator();
 
     // RENDERER
     if(igButton("render wireframe", (ImVec2) { .x = -1.0f, .y = 24.0f }))
-        game_state->forward_renderer.render_wireframe = !game_state->forward_renderer.render_wireframe;
+        game_state->water_renderer.render_wireframe = !game_state->water_renderer.render_wireframe;
 
     igSeparator();
 
@@ -229,18 +228,18 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_input();
 
     // SHADERS
-    init_forward_shader();
+    init_water_shader();
 
     game_state->wavelength_range = VECTOR_2(2.0f, 8.0f);
     game_state->amplitude_range  = VECTOR_2(0.1f, 0.4f);
-    game_state->steepness_range  = VECTOR_2(0.8f, 1.4f);
-    game_state->speed_range      = VECTOR_2(1.0f, 8.0f);
+    game_state->steepness_range  = VECTOR_2(0.6f, 1.25f);
+    game_state->speed_range      = VECTOR_2(2.0f, 8.0f);
     game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 
     game_state->waves[0] = (wave_s) {
         .wavelength = 48.0f,
         .amplitude = 5.0f,
-        .steepness = 5.0f,
+        .steepness = 4.0f,
         .speed = 15.0f,
     };
 
@@ -256,7 +255,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         
         .fov        = 70.0f,
         .near_plane = 0.001f,
-        .far_plane  = 2000.0f,
+        .far_plane  = 1500.0f,
 
         .speed      = 24.0f,
         .sens       = 7500.0f
@@ -273,27 +272,27 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
     game_state->tip_attenuation = 25.0f;
 
-    game_state->specular_factor = 8.0f;
-    game_state->specular_strength = 6.0f;
+    game_state->specular_factor = 6.0f;
+    game_state->specular_strength = 5.0f;
 
     game_state->refractive_index = 1.33f;
 
     game_state->ambient = 0.24f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
-    init_forward_renderer();
+    init_water_renderer();
 
     // GUI
     init_imgui();
 
-    game_state->test_entity.mesh = primitive_plane_mesh(
+    game_state->water_entity.mesh = primitive_plane_mesh(
         VECTOR_3(-1024.0f, 0.0f, -12.0f),
         (v2i) { .x = 2048, .y = 2048 },
         VECTOR_2(2048.0f, 2048.0f),
         &game_state->mesh_arena
     );
 
-    game_state->test_entity.transform = (transform_s) {
+    game_state->water_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
         .scale    = VECTOR_3(1.0f, 0.7f, 1.0f)
@@ -303,10 +302,10 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 }
 
 static void terminate_game() {
-    destroy_mesh(&game_state->test_entity.mesh);
+    destroy_mesh(&game_state->water_entity.mesh);
 
-    destroy_fbo(&game_state->forward_renderer.framebuffer);
-    destroy_shader(&game_state->forward_shader);
+    destroy_fbo(&game_state->water_renderer.framebuffer);
+    destroy_shader(&game_state->water_shader);
     
     shutdown_imgui();
     destroy_window();
@@ -323,9 +322,9 @@ int main(void) {
         update_frame_stats();
 
         update_camera(&game_state->camera);
-        render_forward(&game_state->test_entity);
+        render_water(&game_state->water_entity);
 
-        fbo_copy_texture_to_screen(&game_state->forward_renderer.framebuffer, GL_COLOR_ATTACHMENT0);
+        fbo_copy_texture_to_screen(&game_state->water_renderer.framebuffer, GL_COLOR_ATTACHMENT0);
 
         update_imgui();
         show_debug_stats_window();

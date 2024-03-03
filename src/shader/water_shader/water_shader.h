@@ -1,15 +1,13 @@
-#ifndef FORWARD_SHADER_H
-#define FORWARD_SHADER_H
+#ifndef WATER_SHADER_H
+#define WATER_SHADER_H
 
 #include "base.h"
 
-#define TOTAL_WAVES 16
+#define TOTAL_WAVES 12
 
-void init_forward_shader();
+void init_water_shader();
 
 typedef struct {
-    // FORWARD SHADER
-
     // VERTEX
     GLuint time;
     GLuint transformation;
@@ -40,7 +38,7 @@ typedef struct {
 
     GLuint ambient;
     GLuint ambient_color;
-} forward_shader_uniforms_s;
+} water_shader_uniforms_s;
 
 typedef struct {
     f32 wavelength;

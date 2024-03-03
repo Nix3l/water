@@ -1,10 +1,10 @@
-#include "forward_shader.h"
+#include "water_shader.h"
 
 #include "game.h"
 #include "util/log.h"
 
 static void bind_attributes() {
-    shader_s* shader = &game_state->forward_shader;
+    shader_s* shader = &game_state->water_shader;
     shader_bind_attribute(shader, 0, "vs_position");
     shader_bind_attribute(shader, 1, "vs_uvs");
     shader_bind_attribute(shader, 2, "vs_normals");
@@ -13,7 +13,7 @@ static void bind_attributes() {
 static void load_uniforms(void* data) {
     entity_s* entity = data;
 
-    forward_shader_uniforms_s* uniforms = &game_state->forward_shader_uniforms;
+    water_shader_uniforms_s* uniforms = &game_state->water_shader_uniforms;
 
     // VERTEX SHADER
     shader_load_float(uniforms->time, game_state->curr_time);
@@ -50,8 +50,8 @@ static void load_uniforms(void* data) {
     shader_load_vec3(uniforms->ambient_color, game_state->ambient_color);
 }
 
-void init_forward_shader() {
-    game_state->forward_shader = load_and_create_shader(
+void init_water_shader() {
+    game_state->water_shader = load_and_create_shader(
             "forward",
             "shader/forward_vs.glsl",
             "shader/forward_fs.glsl",
@@ -59,8 +59,8 @@ void init_forward_shader() {
             load_uniforms
         );
 
-    forward_shader_uniforms_s* uniforms = &game_state->forward_shader_uniforms;
-    shader_s* shader = &game_state->forward_shader;
+    water_shader_uniforms_s* uniforms = &game_state->water_shader_uniforms;
+    shader_s* shader = &game_state->water_shader;
 
     // VERTEX SHADER
     uniforms->time              = shader_get_uniform(shader, "time");

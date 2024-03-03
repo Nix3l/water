@@ -1,30 +1,30 @@
-#include "renderer.h"
+#include "water_renderer.h"
 
 #include "util/log.h"
 #include "game.h"
 
-void init_forward_renderer() {
-    game_state->forward_renderer = (forward_renderer_s) {
+void init_water_renderer() {
+    game_state->water_renderer = (water_renderer_s) {
         .background_color = VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f),
-        .shader = &game_state->forward_shader,
+        .shader = &game_state->water_shader,
         .render_wireframe = false,
         .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 2)
     };
 
     // no transparency for now
-    fbo_create_texture(&game_state->forward_renderer.framebuffer,
+    fbo_create_texture(&game_state->water_renderer.framebuffer,
             GL_COLOR_ATTACHMENT0, 
             GL_RGB16F,
             GL_RGB);
 
-    fbo_create_texture(&game_state->forward_renderer.framebuffer,
+    fbo_create_texture(&game_state->water_renderer.framebuffer,
             GL_DEPTH_ATTACHMENT,
             GL_DEPTH_COMPONENT32F,
             GL_DEPTH_COMPONENT);
 }
 
-void render_forward(entity_s* entity) {
-    forward_renderer_s* renderer = &game_state->forward_renderer;
+void render_water(entity_s* entity) {
+    water_renderer_s* renderer = &game_state->water_renderer;
     fbo_s* framebuffer = &renderer->framebuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->id);
 
@@ -40,11 +40,11 @@ void render_forward(entity_s* entity) {
 
     glViewport(0, 0, game_state->window.width, game_state->window.height);
 
-    shader_start(&game_state->forward_shader);
+    shader_start(&game_state->water_shader);
 
-    game_state->forward_shader.load_uniforms(entity);
+    game_state->water_shader.load_uniforms(entity);
 
-    if(game_state->forward_renderer.render_wireframe)
+    if(game_state->water_renderer.render_wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glBindVertexArray(entity->mesh.vao);
@@ -55,7 +55,7 @@ void render_forward(entity_s* entity) {
     mesh_disable_attributes(&entity->mesh);
     glBindVertexArray(0);
 
-    if(game_state->forward_renderer.render_wireframe)
+    if(game_state->water_renderer.render_wireframe)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     shader_stop();
