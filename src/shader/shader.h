@@ -41,7 +41,8 @@ void shader_stop();
 void shader_bind_attribute(shader_s* shader, GLuint attribute, char* attribute_name);
 
 GLuint shader_get_uniform(shader_s* shader, char* uniform_name);
-void shader_load_int(GLuint uniform, u32 value);
+void shader_load_int(GLuint uniform, i32 value);
+void shader_load_uint(GLuint uniform, u32 value);
 void shader_load_float(GLuint uniform, f32 value);
 void shader_load_bool(GLuint uniform, bool value);
 void shader_load_vec2(GLuint uniform, vec2s value);

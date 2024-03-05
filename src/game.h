@@ -49,8 +49,10 @@ typedef struct {
     
     // WATER SHADER VARIABLES
     wave_s waves[TOTAL_WAVES];
-    f32 wavelength_factor;
-    f32 amplitude_factor;
+
+    u32 num_iterations;
+    u32 seed;
+    f32 push_strength;
 
     v2f wavelength_range;
     v2f amplitude_range;

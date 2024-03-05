@@ -118,9 +118,13 @@ GLuint shader_get_uniform(shader_s* shader, char* uniform_name) {
 
     return id;
 }
-  
-void shader_load_int(GLuint uniform, u32 value) {
+
+void shader_load_int(GLuint uniform, i32 value) {
     glUniform1i(uniform, value);
+}
+  
+void shader_load_uint(GLuint uniform, u32 value) {
+    glUniform1ui(uniform, value);
 }
 
 void shader_load_float(GLuint uniform, f32 value) {

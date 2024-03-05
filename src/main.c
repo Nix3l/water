@@ -1,4 +1,5 @@
 // CURRENT:
+// TODO(nix3l): change water shader to generate waves on gpu instead
 // TODO(nix3l): set up some post processing to make the scene look nicer
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
 
@@ -49,41 +50,6 @@ static void show_debug_stats_window() {
     igEnd();
 }
 
-static void generate_waves_random() {
-    for(int i = 0; i < TOTAL_WAVES; i ++) {
-        game_state->waves[i].wavelength = RAND_IN_RANGE(game_state->wavelength_range.x, game_state->wavelength_range.y);
-        game_state->waves[i].amplitude  = RAND_IN_RANGE(game_state->amplitude_range.x, game_state->amplitude_range.y);
-        game_state->waves[i].steepness  = RAND_IN_RANGE(game_state->steepness_range.x, game_state->steepness_range.y);
-        game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
-        game_state->waves[i].direction  = VECTOR_2(
-                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
-                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
-            );
-    }
-}
-
-static void generate_waves() {
-    f32 w = game_state->waves[0].wavelength;
-    f32 a = game_state->waves[0].amplitude;
-    game_state->waves[0].direction  = VECTOR_2(
-            RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
-            RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
-        );
-    for(int i = 1; i < TOTAL_WAVES; i ++) {
-        w *= game_state->wavelength_factor;
-        a *= game_state->amplitude_factor;
-
-        game_state->waves[i].wavelength = w;
-        game_state->waves[i].amplitude  = a;
-        game_state->waves[i].steepness  = RAND_IN_RANGE(game_state->steepness_range.x, game_state->steepness_range.y);
-        game_state->waves[i].speed      = RAND_IN_RANGE(game_state->speed_range.x, game_state->speed_range.y);
-        game_state->waves[i].direction  = VECTOR_2(
-                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y), 
-                RAND_IN_RANGE(game_state->direction_range.x, game_state->direction_range.y)
-            );
-    }
-}
-
 static void show_settings_window() {
     if(is_key_pressed(GLFW_KEY_F2)) game_state->show_settings_window = !game_state->show_settings_window;
     if(!game_state->show_settings_window) return;
@@ -107,15 +73,7 @@ static void show_settings_window() {
 
     // SHADER VARIABLES
 
-    if(igButton("regenerate random waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
-        generate_waves_random();
-    if(igButton("generate waves", (ImVec2) { .x = -1.0f, .y = 24.0f }))
-        generate_waves();
-
     if(igCollapsingHeader_TreeNodeFlags("parameter ranges", ImGuiTreeNodeFlags_None)) {
-        igDragFloat("wavelength factor", &game_state->wavelength_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat("amplitude factor", &game_state->amplitude_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-
         igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -128,6 +86,13 @@ static void show_settings_window() {
     void* temp_mem = game_memory->transient_storage;
     MEM_ZERO(temp_mem, 8);
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
+        const u32 uzero = 0;
+        const u32 umax = MAX_u32;
+        igDragScalar("iterations", ImGuiDataType_U32, &game_state->num_iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
+        igDragScalar("seed", ImGuiDataType_U32, &game_state->seed, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
+        igDragFloat("push strength", &game_state->push_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igSeparator();
+
         for(u32 i = 0; i < TOTAL_WAVES; i ++) {
             wave_s* wave = &game_state->waves[i];
             char* label = temp_mem;
@@ -139,6 +104,8 @@ static void show_settings_window() {
                 igDragFloat("steepness", &wave->steepness, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("speed", &wave->speed, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat2("direction", wave->direction.raw, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("wavelength factor", &wave->w_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+                igDragFloat("amplitude factor", &wave->a_factor, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igTreePop();
             }
         }
@@ -236,17 +203,28 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->speed_range      = VECTOR_2(2.0f, 8.0f);
     game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 
-    game_state->waves[0] = (wave_s) {
-        .wavelength = 48.0f,
-        .amplitude = 5.0f,
-        .steepness = 4.0f,
-        .speed = 15.0f,
-    };
+    game_state->seed = RAND_IN_RANGE(0, MAX_u32);
 
-    generate_waves();
+    for(usize i = 0; i < TOTAL_WAVES; i ++) {
+        game_state->waves[i] = (wave_s) {
+            .wavelength = 48.0f,
+            .amplitude = 4.0f,
+            .steepness = 0.3f,
+            .speed = 12.0f,
 
-    game_state->wavelength_factor = 0.835f;
-    game_state->amplitude_factor = 0.720f;
+            .direction = VECTOR_2(
+                    RAND_IN_RANGE(-1.0f, 1.0f),
+                    RAND_IN_RANGE(-1.0f, 1.0f)
+                ),
+
+            .w_factor = 0.857f,
+            .a_factor = 0.730f
+        };
+    }
+
+    game_state->num_iterations = 4;
+
+    game_state->push_strength = 1.0f;
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -286,9 +264,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_imgui();
 
     game_state->water_entity.mesh = primitive_plane_mesh(
-        VECTOR_3(-1024.0f, 0.0f, -12.0f),
-        (v2i) { .x = 2048, .y = 2048 },
-        VECTOR_2(2048.0f, 2048.0f),
+        VECTOR_3(-64.0f, 0.0f, -64.0f),
+        (v2i) { .x = 1024, .y = 1024 },
+        VECTOR_2(128.0f, 128.0f),
         &game_state->mesh_arena
     );
 

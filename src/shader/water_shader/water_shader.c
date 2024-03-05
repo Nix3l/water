@@ -28,7 +28,14 @@ static void load_uniforms(void* data) {
         shader_load_float(uniforms->steepness  + i, wave.steepness);
         shader_load_float(uniforms->speed      + i, wave.speed);
         shader_load_vec2 (uniforms->direction  + i, wave.direction);
+        shader_load_float(uniforms->w_factor   + i, wave.w_factor);
+        shader_load_float(uniforms->a_factor   + i, wave.a_factor);
     }
+
+    shader_load_int(uniforms->num_iterations, game_state->num_iterations);
+    shader_load_uint(uniforms->seed, game_state->seed);
+
+    shader_load_float(uniforms->push_strength, game_state->push_strength);
 
     // FRAGMENT SHADER
     shader_load_vec3(uniforms->light_dir, game_state->sun.direction);
@@ -72,6 +79,13 @@ void init_water_shader() {
     uniforms->steepness         = shader_get_uniform(shader, "steepnesses[0]");
     uniforms->speed             = shader_get_uniform(shader, "speeds[0]");
     uniforms->direction         = shader_get_uniform(shader, "directions[0]");
+    uniforms->w_factor          = shader_get_uniform(shader, "w_factors[0]");
+    uniforms->a_factor          = shader_get_uniform(shader, "a_factors[0]");
+
+    uniforms->num_iterations    = shader_get_uniform(shader, "num_iterations");
+    uniforms->seed              = shader_get_uniform(shader, "seed");
+
+    uniforms->push_strength     = shader_get_uniform(shader, "push_strength");
 
     // FRAGMENT SHADER
     uniforms->light_dir         = shader_get_uniform(shader, "light_dir");

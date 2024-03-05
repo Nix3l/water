@@ -3,7 +3,7 @@
 
 #include "base.h"
 
-#define TOTAL_WAVES 12
+#define TOTAL_WAVES 3
 
 void init_water_shader();
 
@@ -19,6 +19,13 @@ typedef struct {
     GLuint steepness;
     GLuint speed;
     GLuint direction;
+    GLuint w_factor;
+    GLuint a_factor;
+
+    GLuint num_iterations;
+    GLuint seed;
+
+    GLuint push_strength;
 
     // FRAGMENT
     GLuint light_dir;
@@ -47,6 +54,9 @@ typedef struct {
 
     f32 speed;
     v2f direction;
+
+    f32 w_factor;
+    f32 a_factor;
 } wave_s;
 
 #endif

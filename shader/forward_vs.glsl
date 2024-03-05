@@ -14,12 +14,44 @@ uniform mat4 projection_view;
 // because glsl is stupid when it comes to accessing structs in uniforms
 
 // WAVE DATA
-#define TOTAL_WAVES 12
+#define TOTAL_WAVES 3
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float steepnesses[TOTAL_WAVES];
 uniform float speeds[TOTAL_WAVES];
-uniform vec2 directions[TOTAL_WAVES];
+uniform vec2  directions[TOTAL_WAVES];
+uniform float w_factors[TOTAL_WAVES];
+uniform float a_factors[TOTAL_WAVES];
+
+uniform int num_iterations = 4;
+uniform uint seed;
+
+uniform float push_strength = 1.0;
+
+// NOTE(nix3l): also see https://amindforeverprogramming.blogspot.com/2013/07/random-floats-in-glsl-330.html
+// for more info on random in shaders 
+
+// NOTE(nix3l): no clue how this works but if you care
+// https://jcgt.org/published/0009/03/02/paper.pdf
+uint pcg_hash(uint input) {
+    uint state = input * 747796405u + 2891336453u;
+    uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
+    return (word >> 22u) ^ word;
+}
+
+// take advantage of the IEEE standard to get some floats from the hash function
+float randf(float f) {
+    const uint mantissa = 0x007FFFFFu;
+    const uint one      = 0x3F800000u;
+
+    uint hash = pcg_hash(floatBitsToUint(f));
+    hash &= mantissa;
+    hash |= one;
+
+    return uintBitsToFloat(hash) - 1.0;
+}
+
+// TODO(nix3l): generate the waves here instead
 
 out float displacement;
 out vec3 fs_position;
@@ -78,17 +110,48 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
     vec2 dir = normalize(directions[index]);
     float xz = dir.x * position.x + dir.y * position.z;
 
-    float wavelength = wavelengths[index];
-    float amplitude = amplitudes[index];
-    float frequency = 2.0 / wavelength;
-    float phase = speeds[index] * frequency;
-    float phi = time * phase;
-    float steepness = steepnesses[index] / (frequency * amplitude * TOTAL_WAVES);
+    float w = wavelengths[index];
+    float a = amplitudes[index];
+    float s = speeds[index];
+    float q = steepnesses[index];
+    float w_factor = w_factors[index];
+    float a_factor = a_factors[index];
+    
+    uint hash_seed = pcg_hash(seed);
+    float rand = randf(s);
 
-    vec3 displacement = calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
-    vec3 normal       = calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
+    wave_displacement_s output = wave_displacement_s(vec3(0.0), vec3(0.0));
 
-    return wave_displacement_s(displacement, normal);
+    for(int i = 0; i < num_iterations; i ++) {
+        float wavelength = w * pow(w_factor, i);
+        float amplitude  = a * pow(a_factor, i);
+        float frequency  = 2.0 / wavelength;
+        float phase      = s * frequency;
+        float phi        = time * phase;
+        float steepness  = q / (frequency * amplitude * num_iterations);
+
+        output.displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
+        output.normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
+
+        // get new random parameters for the next iteration
+        hash_seed = pcg_hash(hash_seed);
+        rand = randf(hash_seed);
+
+        dir = normalize(vec2(cos(rand), sin(rand)));
+        xz = dir.x * position.x + dir.y * position.z;
+
+        hash_seed = pcg_hash(hash_seed);
+        rand = randf(hash_seed);
+
+        s *= rand * 2.0;
+
+        hash_seed = pcg_hash(hash_seed);
+        rand = randf(hash_seed);
+        
+        q *= rand * 2.0;
+    }
+
+    return output;
 }
 
 void main(void) {
@@ -99,7 +162,7 @@ void main(void) {
 
     vec3 last_normal = vec3(0.0);
     for(int i = 0; i < TOTAL_WAVES; i ++) {
-        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position - last_normal);
+        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position + last_normal * push_strength);
         last_normal = wave_displacement.normal;
         total_displacement += wave_displacement.displacement;
         total_normal += wave_displacement.normal;
