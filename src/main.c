@@ -1,5 +1,5 @@
 // CURRENT:
-// TODO(nix3l): change water shader to generate waves on gpu instead
+// TODO(nix3l): set up the parameters file
 // TODO(nix3l): set up some post processing to make the scene look nicer
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
 
@@ -12,6 +12,9 @@
 // at some point probably try to compile the new backends. the new version of the main lib is still here though
 
 #include "platform/platform.h"
+#include "params/params.h"
+
+#define PARAMS_FILE "params"
 
 game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
@@ -72,23 +75,17 @@ static void show_settings_window() {
     igSeparator();
 
     // SHADER VARIABLES
-
-    if(igCollapsingHeader_TreeNodeFlags("parameter ranges", ImGuiTreeNodeFlags_None)) {
-        igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("speed", game_state->speed_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("direction", game_state->direction_range.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
-    }
-
-    igSeparator();
-
     void* temp_mem = game_memory->transient_storage;
     MEM_ZERO(temp_mem, 8);
+    const u32 uzero = 0;
+    const u32 umax = MAX_u32;
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
-        const u32 uzero = 0;
-        const u32 umax = MAX_u32;
         igDragScalar("iterations", ImGuiDataType_U32, &game_state->num_iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
+        // igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        // igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("speed", game_state->speed_range.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        // igDragFloat2("direction", game_state->direction_range.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
         igDragScalar("seed", ImGuiDataType_U32, &game_state->seed, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
         igDragFloat("push strength", &game_state->push_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igSeparator();
@@ -124,7 +121,7 @@ static void show_settings_window() {
 
     igDragFloat("specular factor", &game_state->specular_factor, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("specular strength", &game_state->specular_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-    igDragFloat("refractive index", &game_state->refractive_index, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("reflectiveness", &game_state->r0, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     
     igDragFloat("ambient", &game_state->ambient, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("ambient color", game_state->ambient_color.raw, ImGuiColorEditFlags_None);
@@ -199,11 +196,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->wavelength_range = VECTOR_2(2.0f, 8.0f);
     game_state->amplitude_range  = VECTOR_2(0.1f, 0.4f);
-    game_state->steepness_range  = VECTOR_2(0.6f, 1.25f);
-    game_state->speed_range      = VECTOR_2(2.0f, 8.0f);
+    game_state->steepness_range  = VECTOR_2(-0.15f, 0.15f);
+    game_state->speed_range      = VECTOR_2(-1.0f, 1.0f);
     game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
 
-    game_state->seed = RAND_IN_RANGE(0, MAX_u32);
+    game_state->seed = 71892;
 
     for(usize i = 0; i < TOTAL_WAVES; i ++) {
         game_state->waves[i] = (wave_s) {
@@ -223,8 +220,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     game_state->num_iterations = 4;
-
-    game_state->push_strength = 1.0f;
+    game_state->push_strength = 0.0f;
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -250,10 +246,10 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->tip_color = VECTOR_RGB(34.0f, 115.0f, 120.0f);
     game_state->tip_attenuation = 25.0f;
 
-    game_state->specular_factor = 6.0f;
-    game_state->specular_strength = 5.0f;
+    game_state->specular_factor = 32.0f;
+    game_state->specular_strength = 8.0f;
 
-    game_state->refractive_index = 1.33f;
+    game_state->r0 = 0.1f;
 
     game_state->ambient = 0.24f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
@@ -277,6 +273,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     };
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+    load_parameters_from_file(PARAMS_FILE);
 }
 
 static void terminate_game() {

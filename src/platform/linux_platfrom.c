@@ -75,12 +75,11 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
 
     temp_mem[length + 1] = '\0';
 
-    rewind(file);
+    fclose(file);
 
     char** output = arena_push(arena, num_lines * sizeof(char*));
     char* file_contents = arena_push(arena, length + 1);
-    strncpy(file_contents, temp_mem, length);
-    file_contents[length + 1] = '\0';
+    strncpy(file_contents, temp_mem, length + 1);
 
     char* curr_str_view = file_contents;
     output[0] = file_contents;

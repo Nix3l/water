@@ -73,8 +73,16 @@ void arena_pop(arena_s* arena, usize bytes) {
     arena->size -= bytes;
 }
 
+void* arena_push_to_capacity(arena_s* arena) {
+    return arena_push(arena, arena->capacity - arena->size);
+}
+
 bool arena_fits(arena_s* arena, usize bytes) {
     return arena->size + bytes <= arena->capacity && !arena->expandable;
+}
+
+usize arena_remaining_capacity(arena_s* arena) {
+    return arena->capacity - arena->size;
 }
 
 void arena_clear(arena_s* arena) {

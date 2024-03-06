@@ -32,6 +32,9 @@ static void load_uniforms(void* data) {
         shader_load_float(uniforms->a_factor   + i, wave.a_factor);
     }
 
+    shader_load_vec2(uniforms->speed_range, game_state->speed_range);
+    shader_load_vec2(uniforms->steepness_range, game_state->steepness_range);
+
     shader_load_int(uniforms->num_iterations, game_state->num_iterations);
     shader_load_uint(uniforms->seed, game_state->seed);
 
@@ -51,7 +54,7 @@ static void load_uniforms(void* data) {
     shader_load_float(uniforms->specular_strength, game_state->specular_strength);
     shader_load_vec3(uniforms->camera_pos, game_state->camera.position);
 
-    shader_load_float(uniforms->refractive_index, game_state->refractive_index);
+    shader_load_float(uniforms->r0, game_state->r0);
 
     shader_load_float(uniforms->ambient, game_state->ambient);
     shader_load_vec3(uniforms->ambient_color, game_state->ambient_color);
@@ -82,6 +85,9 @@ void init_water_shader() {
     uniforms->w_factor          = shader_get_uniform(shader, "w_factors[0]");
     uniforms->a_factor          = shader_get_uniform(shader, "a_factors[0]");
 
+    uniforms->speed_range       = shader_get_uniform(shader, "speed_range");
+    uniforms->steepness_range   = shader_get_uniform(shader, "steepness_range");
+
     uniforms->num_iterations    = shader_get_uniform(shader, "num_iterations");
     uniforms->seed              = shader_get_uniform(shader, "seed");
 
@@ -101,7 +107,7 @@ void init_water_shader() {
     uniforms->specular_strength = shader_get_uniform(shader, "specular_strength");
     uniforms->camera_pos        = shader_get_uniform(shader, "camera_pos");
     
-    uniforms->refractive_index  = shader_get_uniform(shader, "refractive_index");
+    uniforms->r0                = shader_get_uniform(shader, "r0");
 
     uniforms->ambient           = shader_get_uniform(shader, "ambient");
     uniforms->ambient_color     = shader_get_uniform(shader, "ambient_color");

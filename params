@@ -1,0 +1,9 @@
+wave 0 {
+    wavelength [32.000000]
+    amplitude [2.000000]
+    steepness [0.300000]
+    speed [12.000000]
+    direction [0.340000, -0.820000]
+    w_factor [0.835000]
+    a_factor [0.725000]
+}

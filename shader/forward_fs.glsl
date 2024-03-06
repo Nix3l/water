@@ -11,22 +11,22 @@ uniform float light_intensity;
 uniform vec3 water_color = vec3(0.04, 0.24, 0.96);
 uniform vec3 tip_color = vec3(1.0, 1.0, 1.0);
 
-uniform float tip_attenuation = 1.0;
+uniform float tip_attenuation = 18.0;
 
-uniform float specular_factor = 8.0;
-uniform float specular_strength = 0.5;
+uniform float specular_factor = 32.0;
+uniform float specular_strength = 1.0;
 uniform vec3 camera_pos;
 
-uniform float refractive_index = 2.33f;
+uniform float r0 = 1.33f;
 
-uniform float ambient = 0.1;
+uniform float ambient = 0.24;
 uniform vec3 ambient_color;
 
 out vec4 out_color;
 
 void main(void) {
     // DIFFUSE LIGHTING
-    float ndotl = dot(fs_normals, -light_dir);
+    float ndotl = max(dot(fs_normals, -light_dir), 0.0);
     float diffuse_factor = max(ndotl, ambient);
 
     // SPECULAR LIGHTING
@@ -35,10 +35,9 @@ void main(void) {
     float specular_lighting = specular_strength * ndotl * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
 
     // SCHLICK FRESNEL
-    float r0 = pow((refractive_index - 1) / (refractive_index + 1), 2);
     vec3 halfway_dir = camera_dir + light_dir;
-    float exponential = pow(1 - max(dot(fs_normals, halfway_dir), 0.0), 5);
-    float fresnel_factor = r0 + (1 - r0) * exponential;
+    float exponential = pow(1.0 - max(dot(fs_normals, halfway_dir), 0.0), 5.0);
+    float fresnel_factor = exponential + (1.0 - exponential) * r0;
 
     specular_lighting *= fresnel_factor;
 

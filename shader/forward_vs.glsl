@@ -23,6 +23,9 @@ uniform vec2  directions[TOTAL_WAVES];
 uniform float w_factors[TOTAL_WAVES];
 uniform float a_factors[TOTAL_WAVES];
 
+uniform vec2 steepness_range;
+uniform vec2 speed_range;
+
 uniform int num_iterations = 4;
 uniform uint seed;
 
@@ -50,9 +53,6 @@ float randf(float f) {
 
     return uintBitsToFloat(hash) - 1.0;
 }
-
-// TODO(nix3l): generate the waves here instead
-
 out float displacement;
 out vec3 fs_position;
 out vec3 fs_normals;
@@ -143,12 +143,12 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
         hash_seed = pcg_hash(hash_seed);
         rand = randf(hash_seed);
 
-        s *= rand * 2.0;
+        s += speed_range.x + (speed_range.y - speed_range.x) * rand;
 
         hash_seed = pcg_hash(hash_seed);
         rand = randf(hash_seed);
         
-        q *= rand * 2.0;
+        q += steepness_range.x + (steepness_range.y - steepness_range.x) * rand;
     }
 
     return output;

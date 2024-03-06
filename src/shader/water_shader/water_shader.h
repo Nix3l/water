@@ -22,6 +22,9 @@ typedef struct {
     GLuint w_factor;
     GLuint a_factor;
 
+    GLuint speed_range;
+    GLuint steepness_range;
+
     GLuint num_iterations;
     GLuint seed;
 
@@ -41,7 +44,7 @@ typedef struct {
     GLuint specular_strength;
     GLuint camera_pos;
 
-    GLuint refractive_index;
+    GLuint r0;
 
     GLuint ambient;
     GLuint ambient_color;

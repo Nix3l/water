@@ -35,8 +35,14 @@ arena_s arena_create_expandable_in_block(void* data, usize capacity);
 void* arena_push(arena_s* arena, usize bytes);
 void arena_pop(arena_s* arena, usize bytes);
 
+// pushes a pointer with as much memory as the arena has left
+void* arena_push_to_capacity(arena_s* arena);
+
 // returns whether the given number of bytes can fit in the arena or not
 bool arena_fits(arena_s* arena, usize bytes);
+
+// returns the maximum amount of memory that can be pushed on to the arena
+usize arena_remaining_capacity(arena_s* arena);
 
 // clear all the used memory in the arena. does not destroy the arena itself
 void arena_clear(arena_s* arena);
