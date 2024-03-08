@@ -71,7 +71,8 @@ char** platform_load_lines_from_file(char* filepath, usize* out_num_lines, arena
     // and get the number of new lines in the process
     usize length;
     for(length = 0; !feof(file); length ++)
-        if((temp_mem[length] = fgetc(file)) == '\n') num_lines ++;
+        if((temp_mem[length] = fgetc(file)) == '\n')
+            num_lines ++;
 
     temp_mem[length + 1] = '\0';
 

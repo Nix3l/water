@@ -1,5 +1,6 @@
 // CURRENT:
 // TODO(nix3l): set up the parameters file
+// TODO(nix3l): change to exponential sine instead of gerstner and add a speed multiplier instead of the randomness
 // TODO(nix3l): set up some post processing to make the scene look nicer
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
 
@@ -185,6 +186,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     
     game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
     game_state->fbo_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
+    game_state->params_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -274,7 +276,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-    load_parameters_from_file(PARAMS_FILE);
+    // TODO(nix3l): dont give this its own arena, wasting memory
+    load_parameters_from_file(PARAMS_FILE, &game_state->params_arena);
 }
 
 static void terminate_game() {

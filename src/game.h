@@ -28,6 +28,7 @@ typedef struct {
     // ARENAS
     arena_s shader_arena; // mostly contains text for shader paths/names
     arena_s fbo_arena; // contains texture metadata for fbos
+    arena_s params_arena; // contains text from params file
     arena_s mesh_arena; // contains text for mesh names/filepaths
 
     // IO
