@@ -75,6 +75,10 @@ static void show_settings_window() {
 
     igSeparator();
 
+    igDragFloat("time scale", &game_state->time_scale, 0.1f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
+    
+    igSeparator();
+
     // SHADER VARIABLES
     void* temp_mem = game_memory->transient_storage;
     MEM_ZERO(temp_mem, 8);
@@ -136,7 +140,7 @@ static void show_settings_window() {
 // the scope of this project
 static void update_frame_stats() {
     game_state->old_time = game_state->curr_time;
-    game_state->curr_time = glfwGetTime();
+    game_state->curr_time = glfwGetTime() * game_state->time_scale;
     game_state->delta_time = game_state->curr_time - game_state->old_time;
     game_state->frame_count ++;
     game_state->fps_counter ++;
@@ -144,7 +148,7 @@ static void update_frame_stats() {
 
     // update fps every 0.16s or so
     // makes it flicker less than updating it every frame
-    if(game_state->fps_timer >= (1/6.0f)) {
+    if(game_state->fps_timer >= (1/6.0f) * game_state->time_scale) {
         game_state->fps = game_state->fps_counter / game_state->fps_timer;
         game_state->fps_counter = 0;
         game_state->fps_timer = 0.0f;
@@ -274,9 +278,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         .scale    = VECTOR_3(1.0f, 0.7f, 1.0f)
     };
 
+    game_state->time_scale = 1.0f;
+
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-    // TODO(nix3l): dont give this its own arena, wasting memory
+    // TODO(nix3l): maybe dont give this its own arena, wasting memory
     load_parameters_from_file(PARAMS_FILE, &game_state->params_arena);
 }
 

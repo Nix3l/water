@@ -87,6 +87,8 @@ typedef struct {
     // OTHER
     entity_s water_entity;
 
+    f32 time_scale;
+
     bool show_debug_stats_window;
     bool show_settings_window;
 } game_state_s;

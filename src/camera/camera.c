@@ -17,7 +17,7 @@ void update_camera(camera_s* camera) {
             is_key_down(GLFW_KEY_S) - is_key_down(GLFW_KEY_W)
         );
 
-    movement = glms_vec3_scale(movement, camera->speed * delta_time());
+    movement = glms_vec3_scale(movement, camera->speed * delta_time() / game_state->time_scale);
 
     v3f forward = yaw_pitch_to_direction(camera->rotation.y, camera->rotation.x);
     v3f right = yaw_to_right(camera->rotation.y);
@@ -29,8 +29,8 @@ void update_camera(camera_s* camera) {
 
     // rotate the camera
     v2f mouse_move = get_mouse_move();
-    camera->rotation.x += mouse_move.y * camera->sens * delta_time();
-    camera->rotation.y += mouse_move.x * camera->sens * delta_time();
+    camera->rotation.x += mouse_move.y * camera->sens * delta_time() / game_state->time_scale;
+    camera->rotation.y += mouse_move.x * camera->sens * delta_time() / game_state->time_scale;
 }
 
 mat4s camera_projection(camera_s* camera) {
