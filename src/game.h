@@ -36,6 +36,7 @@ typedef struct {
     input_state_s input_state;
 
     // FRAME STATS
+    // TODO(nix3l): scaled + unscaled time
     f64 old_time;
     f64 curr_time;
     f32 delta_time;
@@ -74,6 +75,12 @@ typedef struct {
     f32 ambient;
     v3f ambient_color;
 
+    // TIME SCALE
+    f32 time_scale;
+
+    // PARAMS FILE
+    char params_filepath[64];
+
     // RENDERER
     camera_s camera;
     directional_light_s sun;
@@ -86,8 +93,6 @@ typedef struct {
 
     // OTHER
     entity_s water_entity;
-
-    f32 time_scale;
 
     bool show_debug_stats_window;
     bool show_settings_window;

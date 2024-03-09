@@ -6,6 +6,11 @@
 
 #define WAVE_IDENTIFIER "wave"
 
+// NOTE(nix3l): not the best implementation honestly im not very happy with it
+// even with using the preprocessor its too much boilerplate
+// if you are going to reuse this code, please make it better
+// for now, it works
+
 #define FMT_U32  "%u"
 #define FMT_FLT  "%f"
 #define FMT_FLT2 "%f, %f"
@@ -29,6 +34,46 @@
 #define GET_PARAM_FLT3(_parent, _param, _name, _val) do { \
     if(strncmp((_name), #_param, strlen(#_param)) == 0) \
         sscanf((_val), FMT_FLT3, &(_parent)->_param.x, &(_parent)->_param.y, &(_parent)->_param.z); \
+} while(0)
+
+#define SET_PARAM_U32(_data, _parent, _param) do { \
+    strcat((_data), #_param); \
+    strcat((_data), " ["); \
+    char _val[256]; \
+    MEM_ZERO(_val, sizeof(_val)); \
+    snprintf(_val, sizeof(_val), FMT_U32, (_parent)->_param); \
+    strcat((_data), _val); \
+    strcat((_data), "]\n"); \
+} while(0)
+
+#define SET_PARAM_FLT(_data, _parent, _param) do { \
+    strcat((_data), #_param); \
+    strcat((_data), " ["); \
+    char _val[256]; \
+    MEM_ZERO(_val, sizeof(_val)); \
+    snprintf(_val, sizeof(_val), FMT_FLT, (_parent)->_param); \
+    strcat((_data), _val); \
+    strcat((_data), "]\n"); \
+} while(0)
+
+#define SET_PARAM_FLT2(_data, _parent, _param) do { \
+    strcat((_data), #_param); \
+    strcat((_data), " ["); \
+    char _val[256]; \
+    MEM_ZERO(_val, sizeof(_val)); \
+    snprintf(_val, sizeof(_val), FMT_FLT2, (_parent)->_param.x, (_parent)->_param.y); \
+    strcat((_data), _val); \
+    strcat((_data), "]\n"); \
+} while(0)
+
+#define SET_PARAM_FLT3(_data, _parent, _param) do { \
+    strcat((_data), #_param); \
+    strcat((_data), " ["); \
+    char _val[256]; \
+    MEM_ZERO(_val, sizeof(_val)); \
+    snprintf(_val, sizeof(_val), FMT_FLT3, (_parent)->_param.x, (_parent)->_param.y, (_parent)->_param.z); \
+    strcat((_data), _val); \
+    strcat((_data), "]\n"); \
 } while(0)
 
 static usize load_wave(char** lines, usize i, usize wave_index) {
@@ -77,9 +122,11 @@ static void load_param(char* line) {
     GET_PARAM_FLT3(game_state, sun.color,         name, val);
     GET_PARAM_FLT2(game_state, sun.direction,     name, val);
     GET_PARAM_FLT (game_state, sun.intensity,     name, val);
+    GET_PARAM_FLT (game_state, time_scale,        name, val);
 }
 
 void load_parameters_from_file(char* filepath, arena_s* arena) {
+    usize arena_size_before = arena->size;
     usize num_lines = 0;
     char** lines = platform_load_lines_from_file(filepath, &num_lines, arena);
 
@@ -114,4 +161,74 @@ void load_parameters_from_file(char* filepath, arena_s* arena) {
 
         load_param(line);
     }
+
+    // pop any memory that was pushed to the arena in this function
+    // not the best way of doing this i think, could be made into something better
+    // but what works for now works
+    arena_pop(arena, arena->size - arena_size_before);
+}
+
+static void write_wave_params(char* data, wave_s* wave) {
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, wavelength);
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, amplitude);
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, steepness);
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, speed);
+    strcat(data, "\t");
+    SET_PARAM_FLT2(data, wave, direction);
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, w_factor);
+    strcat(data, "\t");
+    SET_PARAM_FLT(data, wave, a_factor);
+}
+
+void write_parameters_to_file(char* filepath, arena_s* arena) {
+    usize arena_size_before = arena->size;
+    char* data = arena_push_to_capacity(arena);
+    strcpy(data, "");
+
+    // write waves
+    for(usize i = 0; i < TOTAL_WAVES; i ++) {
+        wave_s* wave = &game_state->waves[i];
+
+        strcat(data, WAVE_IDENTIFIER);
+
+        char wave_index[12];
+        snprintf(wave_index, sizeof(wave_index), " %lu {\n", i);
+        strcat(data, wave_index);
+
+        write_wave_params(data, wave);
+        strcat(data, "}\n");
+    }
+
+    // write params
+    SET_PARAM_U32 (data, game_state, num_iterations);
+    SET_PARAM_U32 (data, game_state, seed);
+    SET_PARAM_FLT2(data, game_state, steepness_range);
+    SET_PARAM_FLT2(data, game_state, speed_range);
+    SET_PARAM_FLT3(data, game_state, water_color);
+    SET_PARAM_FLT3(data, game_state, tip_color);
+    SET_PARAM_FLT (data, game_state, tip_attenuation);
+    SET_PARAM_FLT (data, game_state, specular_factor);
+    SET_PARAM_FLT (data, game_state, specular_strength);
+    SET_PARAM_FLT (data, game_state, r0);
+    SET_PARAM_FLT (data, game_state, ambient);
+    SET_PARAM_FLT3(data, game_state, ambient_color);
+    SET_PARAM_FLT3(data, game_state, sun.color);
+    SET_PARAM_FLT2(data, game_state, sun.direction);
+    SET_PARAM_FLT (data, game_state, sun.intensity);
+    SET_PARAM_FLT (data, game_state, time_scale);
+
+    // write the collated data to the given file
+    platform_write_to_file(filepath, data, strlen(data), false);
+
+    // release all the unused memory
+    // NOTE(nix3l): i could just clear this
+    // but that would be assuming we would always be giving this function
+    // a dedicated params arena
+    // which is not guaranteed
+    arena_pop(arena, arena->capacity - arena_size_before);
 }

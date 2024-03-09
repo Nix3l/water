@@ -1,6 +1,6 @@
 // CURRENT:
-// TODO(nix3l): set up the parameters file
 // TODO(nix3l): change to exponential sine instead of gerstner and add a speed multiplier instead of the randomness
+// TODO(nix3l): do some tesselation work to help performance
 // TODO(nix3l): set up some post processing to make the scene look nicer
 // TODO(nix3l): set up loading/saving params to a file for easier iteration
 
@@ -14,8 +14,6 @@
 
 #include "platform/platform.h"
 #include "params/params.h"
-
-#define PARAMS_FILE "params"
 
 game_memory_s* game_memory = NULL;
 game_state_s* game_state = NULL;
@@ -42,13 +40,15 @@ static void show_debug_stats_window() {
             sizeof(game_state_s) + 
             game_state->shader_arena.size + 
             game_state->mesh_arena.size +
-            game_state->fbo_arena.size,
+            game_state->fbo_arena.size +
+            game_state->params_arena.size,
             game_memory->permenant_storage_size);
     igIndent(12.0f);
     igText("of which state: %u\n", sizeof(game_state_s));
     igText("of which shaders: %u/%u\n", game_state->shader_arena.size, game_state->shader_arena.capacity);
-    igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
     igText("of which framebuffers: %u/%u\n", game_state->fbo_arena.size, game_state->fbo_arena.capacity);
+    igText("of which parameters: %u/%u\n", game_state->params_arena.size, game_state->params_arena.capacity);
+    igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
     igUnindent(12.0f);
 
     igEnd();
@@ -73,10 +73,22 @@ static void show_settings_window() {
     if(igButton("render wireframe", (ImVec2) { .x = -1.0f, .y = 24.0f }))
         game_state->water_renderer.render_wireframe = !game_state->water_renderer.render_wireframe;
 
+    // TIME SCALE
+    igSeparator();
+    igDragFloat("time scale", &game_state->time_scale, 0.1f, 0.01f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
     igSeparator();
 
-    igDragFloat("time scale", &game_state->time_scale, 0.1f, 0.0f, MAX_f32, "%.2f", ImGuiSliderFlags_None);
-    
+    // PARAMS FILE
+    igInputText("parameters filepath", game_state->params_filepath, sizeof(game_state->params_filepath), ImGuiInputTextFlags_None, NULL, NULL);
+
+    if(igButton("load params", (ImVec2) { .x = igGetWindowWidth()/2.0f-8.0f, .y = 24.0f }))
+        load_parameters_from_file(game_state->params_filepath, &game_state->params_arena);
+
+    igSameLine(igGetWindowWidth()/2.0f, 4.0f);
+
+    if(igButton("write params", (ImVec2) { .x = igGetWindowWidth()/2.0f, .y = 24.0f }))
+        write_parameters_to_file(game_state->params_filepath, &game_state->params_arena);
+
     igSeparator();
 
     // SHADER VARIABLES
@@ -225,6 +237,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         };
     }
 
+    // PARAMS FILE
+    strcpy(game_state->params_filepath, "params");
+
     game_state->num_iterations = 4;
     game_state->push_strength = 0.0f;
 
@@ -275,7 +290,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->water_entity.transform = (transform_s) {
         .position = VECTOR_3_ZERO(),
         .rotation = VECTOR_3_ZERO(),
-        .scale    = VECTOR_3(1.0f, 0.7f, 1.0f)
+        .scale    = VECTOR_3(1.0f, 0.4f, 1.0f)
     };
 
     game_state->time_scale = 1.0f;
@@ -283,7 +298,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
     // TODO(nix3l): maybe dont give this its own arena, wasting memory
-    load_parameters_from_file(PARAMS_FILE, &game_state->params_arena);
+    load_parameters_from_file(game_state->params_filepath, &game_state->params_arena);
 }
 
 static void terminate_game() {

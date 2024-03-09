@@ -140,9 +140,22 @@ void* platform_load_file(char* filepath, usize* buff_length, arena_s* arena) {
     return output;
 }
 
+void platform_write_to_file(char* filepath, void* data, usize data_size, bool append) {
+    FILE* file = fopen(filepath, append ? "ab" : "wb");
+    if(!file) {
+        LOG_ERR("failed to open [%s]: err %d\n%s\n", filepath, errno, strerror(errno));
+        return;
+    }
+
+    if(fwrite(data, data_size, 1, file) != 1)
+        LOG_ERR("error writing data to file [%s]\n", filepath);
+
+    fclose(file);
+}
+
 char* platform_get_file_extension(char* filepath) {
-    char* extension = strrchr(filepath, '.');
-    return extension;
+    // returns a pointer starting from the last '.' in the filepath
+    return strrchr(filepath, '.');
 }
 
 // NOTE(nix3l): unsure whether using the std provided string functions is good or not
