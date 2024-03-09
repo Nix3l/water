@@ -7,6 +7,7 @@ wave 0 {
     w_factor [0.835000]
     a_factor [0.725000]
 }
+
 wave 1 {
     wavelength [8.000000]
     amplitude [0.650000]
@@ -16,6 +17,7 @@ wave 1 {
     w_factor [0.810000]
     a_factor [0.810000]
 }
+
 wave 2 {
     wavelength [18.000000]
     amplitude [2.000000]
@@ -25,3 +27,14 @@ wave 2 {
     w_factor [0.857000]
     a_factor [0.730000]
 }
+
+num_iterations [22]
+seed [71892]
+steepness_range [-0.150000, 0.150000]
+speed_range [-0.800000, 1.000000]
+tip_attenuation [18.000000]
+specular_factor [48.000000]
+specular_strength [8.000000]
+r0 [0.025000]
+ambient [0.220000]
+sun.intensity [1.250000]

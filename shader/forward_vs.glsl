@@ -131,6 +131,7 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
         float steepness  = q / (frequency * amplitude * num_iterations);
 
         output.displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
+        // TODO(nix3l): add threshold for wavelength (so very small waves dont affect)
         output.normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
 
         // get new random parameters for the next iteration

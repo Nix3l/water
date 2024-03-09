@@ -8,18 +8,18 @@ uniform vec3 light_dir;
 uniform vec3 light_color;
 uniform float light_intensity;
 
-uniform vec3 water_color = vec3(0.04, 0.24, 0.96);
-uniform vec3 tip_color = vec3(1.0, 1.0, 1.0);
+uniform vec3 water_color;
+uniform vec3 tip_color;
 
-uniform float tip_attenuation = 18.0;
+uniform float tip_attenuation;
 
-uniform float specular_factor = 32.0;
-uniform float specular_strength = 1.0;
+uniform float specular_factor;
+uniform float specular_strength;
 uniform vec3 camera_pos;
 
-uniform float r0 = 1.33f;
+uniform float r0;
 
-uniform float ambient = 0.24;
+uniform float ambient;
 uniform vec3 ambient_color;
 
 out vec4 out_color;

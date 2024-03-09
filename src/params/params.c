@@ -62,9 +62,21 @@ static void load_param(char* line) {
     char val[32];
     sscanf(line, "%s [%[^]]", name, val);
 
-    // TODO(nix3l): add all the serialised parameters here
-    GET_PARAM_U32(game_state, num_iterations, name, val);
-    GET_PARAM_U32(game_state, seed,           name, val);
+    GET_PARAM_U32 (game_state, num_iterations,    name, val);
+    GET_PARAM_U32 (game_state, seed,              name, val);
+    GET_PARAM_FLT2(game_state, steepness_range,   name, val);
+    GET_PARAM_FLT2(game_state, speed_range,       name, val);
+    GET_PARAM_FLT3(game_state, water_color,       name, val);
+    GET_PARAM_FLT3(game_state, tip_color,         name, val);
+    GET_PARAM_FLT (game_state, tip_attenuation,   name, val);
+    GET_PARAM_FLT (game_state, specular_factor,   name, val);
+    GET_PARAM_FLT (game_state, specular_strength, name, val);
+    GET_PARAM_FLT (game_state, r0,                name, val);
+    GET_PARAM_FLT (game_state, ambient,           name, val);
+    GET_PARAM_FLT3(game_state, ambient_color,     name, val);
+    GET_PARAM_FLT3(game_state, sun.color,         name, val);
+    GET_PARAM_FLT2(game_state, sun.direction,     name, val);
+    GET_PARAM_FLT (game_state, sun.intensity,     name, val);
 }
 
 void load_parameters_from_file(char* filepath, arena_s* arena) {
@@ -88,11 +100,10 @@ void load_parameters_from_file(char* filepath, arena_s* arena) {
             // whatever comes afterwards
             if(wave_index >= TOTAL_WAVES) {
                 while(i < num_lines)
-                    if(*lines[i++] == '}') continue;
+                    if(*lines[i++] == '}')
+                        break;
 
-                // if we reach the end of the file for whatever reason, break
-                LOG_WARN("reached end of file when trying to skip extra wave block");
-                break;
+                continue;
             }
 
             // assign i to the return value of this function

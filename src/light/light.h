@@ -4,9 +4,10 @@
 #include "base.h"
 
 typedef struct {
-    v3f direction;
-    f32 intensity;
     v3f color;
+    v3f direction;
+
+    f32 intensity;
 } directional_light_s;
 
 #endif
