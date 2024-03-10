@@ -26,9 +26,9 @@ wave 2 {
 	a_factor [0.730000]
 }
 num_iterations [20]
-seed [71892]
+seed [71909]
 steepness_range [-0.150000, 0.150000]
-speed_range [-0.800000, 1.000000]
+speed_ramp [0.900000]
 water_color [0.337255, 0.756863, 0.956863]
 tip_color [0.185145, 0.541715, 0.563725]
 tip_attenuation [12.000000]

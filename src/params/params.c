@@ -110,7 +110,7 @@ static void load_param(char* line) {
     GET_PARAM_U32 (game_state, num_iterations,    name, val);
     GET_PARAM_U32 (game_state, seed,              name, val);
     GET_PARAM_FLT2(game_state, steepness_range,   name, val);
-    GET_PARAM_FLT2(game_state, speed_range,       name, val);
+    GET_PARAM_FLT (game_state, speed_ramp,        name, val);
     GET_PARAM_FLT3(game_state, water_color,       name, val);
     GET_PARAM_FLT3(game_state, tip_color,         name, val);
     GET_PARAM_FLT (game_state, tip_attenuation,   name, val);
@@ -208,7 +208,7 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_U32 (data, game_state, num_iterations);
     SET_PARAM_U32 (data, game_state, seed);
     SET_PARAM_FLT2(data, game_state, steepness_range);
-    SET_PARAM_FLT2(data, game_state, speed_range);
+    SET_PARAM_FLT (data, game_state, speed_ramp);
     SET_PARAM_FLT3(data, game_state, water_color);
     SET_PARAM_FLT3(data, game_state, tip_color);
     SET_PARAM_FLT (data, game_state, tip_attenuation);

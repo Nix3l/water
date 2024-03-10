@@ -24,12 +24,11 @@ uniform float w_factors[TOTAL_WAVES];
 uniform float a_factors[TOTAL_WAVES];
 
 uniform vec2 steepness_range;
-uniform vec2 speed_range;
+uniform float speed_ramp;
+uniform float dir_angle;
 
 uniform int num_iterations = 4;
 uniform uint seed;
-
-uniform float push_strength = 1.0;
 
 // NOTE(nix3l): also see https://amindforeverprogramming.blogspot.com/2013/07/random-floats-in-glsl-330.html
 // for more info on random in shaders 
@@ -43,21 +42,17 @@ uint pcg_hash(uint input) {
 }
 
 // take advantage of the IEEE standard to get some floats from the hash function
-float randf(float f) {
-    const uint mantissa = 0x007FFFFFu;
-    const uint one      = 0x3F800000u;
-
-    uint hash = pcg_hash(floatBitsToUint(f));
-    hash &= mantissa;
-    hash |= one;
-
-    return uintBitsToFloat(hash) - 1.0;
+float to_float(uint i) {
+    i &= 0x007FFFFFu;
+    i |= 0x3F800000u;
+    return uintBitsToFloat(i) - 1.0;
 }
+
 out float displacement;
 out vec3 fs_position;
 out vec3 fs_normals;
 
-#define USE_GERSTNER 1
+#define USE_GERSTNER    1
 
 struct wave_displacement_s {
     vec3 displacement;
@@ -118,7 +113,7 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
     float a_factor = a_factors[index];
     
     uint hash_seed = pcg_hash(seed);
-    float rand = randf(s);
+    float rand = to_float(hash_seed);
 
     wave_displacement_s output = wave_displacement_s(vec3(0.0), vec3(0.0));
 
@@ -131,24 +126,18 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
         float steepness  = q / (frequency * amplitude * num_iterations);
 
         output.displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
-        // TODO(nix3l): add threshold for wavelength (so very small waves dont affect)
         output.normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
 
         // get new random parameters for the next iteration
         hash_seed = pcg_hash(hash_seed);
-        rand = randf(hash_seed);
-
-        dir = normalize(vec2(cos(rand), sin(rand)));
+        rand = to_float(hash_seed);
+        dir = normalize(dir + vec2(cos(rand * dir_angle), sin(rand * dir_angle)));
         xz = dir.x * position.x + dir.y * position.z;
 
-        hash_seed = pcg_hash(hash_seed);
-        rand = randf(hash_seed);
-
-        s += speed_range.x + (speed_range.y - speed_range.x) * rand;
+        s *= speed_ramp;
 
         hash_seed = pcg_hash(hash_seed);
-        rand = randf(hash_seed);
-        
+        rand = to_float(hash_seed);
         q += steepness_range.x + (steepness_range.y - steepness_range.x) * rand;
     }
 
@@ -163,7 +152,7 @@ void main(void) {
 
     vec3 last_normal = vec3(0.0);
     for(int i = 0; i < TOTAL_WAVES; i ++) {
-        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position + last_normal * push_strength);
+        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position);
         last_normal = wave_displacement.normal;
         total_displacement += wave_displacement.displacement;
         total_normal += wave_displacement.normal;
@@ -171,7 +160,9 @@ void main(void) {
 
     position += total_displacement;
 
+#if USE_GERSTNER
     total_normal.y = 1.0 - total_normal.y;
+#endif
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);
     displacement = total_displacement.y;

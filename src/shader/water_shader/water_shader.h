@@ -22,13 +22,12 @@ typedef struct {
     GLuint w_factor;
     GLuint a_factor;
 
-    GLuint speed_range;
     GLuint steepness_range;
+    GLuint speed_ramp;
+    GLuint dir_angle;
 
     GLuint num_iterations;
     GLuint seed;
-
-    GLuint push_strength;
 
     // FRAGMENT
     GLuint light_dir;

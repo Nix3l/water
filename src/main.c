@@ -1,8 +1,7 @@
 // CURRENT:
-// TODO(nix3l): change to exponential sine instead of gerstner and add a speed multiplier instead of the randomness
 // TODO(nix3l): do some tesselation work to help performance
+// TODO(nix3l): fix the lighting so it doesnt look like a piece of cloth
 // TODO(nix3l): set up some post processing to make the scene look nicer
-// TODO(nix3l): set up loading/saving params to a file for easier iteration
 
 #include "game.h"
 #include "util/log.h"
@@ -98,13 +97,10 @@ static void show_settings_window() {
     const u32 umax = MAX_u32;
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
         igDragScalar("iterations", ImGuiDataType_U32, &game_state->num_iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
-        // igDragFloat2("wavelength", game_state->wavelength_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        // igDragFloat2("amplitude", game_state->amplitude_range.raw, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("steepness", game_state->steepness_range.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        igDragFloat2("speed", game_state->speed_range.raw, 0.1f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
-        // igDragFloat2("direction", game_state->direction_range.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat2("steepness", game_state->steepness_range.raw, 0.01f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat("speed ramp", &game_state->speed_ramp, 0.01f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+        igDragFloat("dir angle", &game_state->dir_angle, 1.0f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragScalar("seed", ImGuiDataType_U32, &game_state->seed, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
-        igDragFloat("push strength", &game_state->push_strength, 0.10f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igSeparator();
 
         for(u32 i = 0; i < TOTAL_WAVES; i ++) {
@@ -212,11 +208,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_water_shader();
 
-    game_state->wavelength_range = VECTOR_2(2.0f, 8.0f);
-    game_state->amplitude_range  = VECTOR_2(0.1f, 0.4f);
-    game_state->steepness_range  = VECTOR_2(-0.15f, 0.15f);
-    game_state->speed_range      = VECTOR_2(-1.0f, 1.0f);
-    game_state->direction_range  = VECTOR_2(-1.0f, 1.0f);
+    game_state->steepness_range = VECTOR_2(-0.15f, 0.15f);
+    game_state->speed_ramp      = 1.02f;
+    game_state->dir_angle       = 300.0f;
 
     game_state->seed = 71892;
 
@@ -241,7 +235,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     strcpy(game_state->params_filepath, "params");
 
     game_state->num_iterations = 4;
-    game_state->push_strength = 0.0f;
 
     // RENDERER
     game_state->camera = (camera_s) {

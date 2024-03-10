@@ -54,13 +54,10 @@ typedef struct {
 
     u32 num_iterations;
     u32 seed;
-    f32 push_strength;
 
-    v2f wavelength_range;
-    v2f amplitude_range;
     v2f steepness_range;
-    v2f speed_range;
-    v2f direction_range;
+    f32 speed_ramp;
+    f32 dir_angle;
 
     v3f water_color;
 
