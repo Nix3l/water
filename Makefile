@@ -58,4 +58,4 @@ num_lines:
 	cat $(shell find shader -iname *.glsl) ${C_SOURCES} ${C_HEADERS} | wc -l
 
 clean:
-	rm ${BUILD_DIR}/*
+	rm ./${BUILD_DIR}/*

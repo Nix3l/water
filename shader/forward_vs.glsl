@@ -27,8 +27,10 @@ uniform vec2 steepness_range;
 uniform float speed_ramp;
 uniform float dir_angle;
 
-uniform int num_iterations = 4;
+uniform int num_iterations;
 uniform uint seed;
+
+// TODO(nix3l): redo this whole thing to use better fbm
 
 // NOTE(nix3l): also see https://amindforeverprogramming.blogspot.com/2013/07/random-floats-in-glsl-330.html
 // for more info on random in shaders 
@@ -52,7 +54,7 @@ out float displacement;
 out vec3 fs_position;
 out vec3 fs_normals;
 
-#define USE_GERSTNER    1
+#define USE_GERSTNER 1
 
 struct wave_displacement_s {
     vec3 displacement;

@@ -1,6 +1,6 @@
 // CURRENT:
-// TODO(nix3l): do some tesselation work to help performance
 // TODO(nix3l): fix the lighting so it doesnt look like a piece of cloth
+// TODO(nix3l): do some tesselation work to help performance
 // TODO(nix3l): set up some post processing to make the scene look nicer
 
 #include "game.h"
@@ -274,9 +274,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_imgui();
 
     game_state->water_entity.mesh = primitive_plane_mesh(
-        VECTOR_3(-64.0f, 0.0f, -64.0f),
+        VECTOR_3(-128.0f, 0.0f, -128.0f),
         (v2i) { .x = 1024, .y = 1024 },
-        VECTOR_2(128.0f, 128.0f),
+        VECTOR_2(256.0f, 256.0f),
         &game_state->mesh_arena
     );
 
