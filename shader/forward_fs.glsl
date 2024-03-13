@@ -1,6 +1,6 @@
 #version 330 core
 
-in float displacement;
+in float fs_displacement;
 in vec3 fs_position;
 in vec3 fs_normals;
 
@@ -45,7 +45,7 @@ void main(void) {
     vec3 lighting = light_color * light_intensity * (diffuse_factor + specular_lighting);
 
     // TIP HIGHLIGHTING
-    float tip_factor = exp(max(displacement, 0.0) / tip_attenuation) - 1;
+    float tip_factor = exp(max(fs_displacement, 0.0) / tip_attenuation) - 1;
     vec3 tip_highlighting = tip_color * tip_factor;
 
     out_color = vec4(water_color * lighting + ambient_color * ambient + tip_highlighting, 1.0);

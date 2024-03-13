@@ -3,7 +3,7 @@
 
 #include "base.h"
 
-#define TOTAL_WAVES 3
+#define TOTAL_WAVES 1
 
 void init_water_shader();
 

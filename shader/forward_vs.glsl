@@ -14,7 +14,7 @@ uniform mat4 projection_view;
 // because glsl is stupid when it comes to accessing structs in uniforms
 
 // WAVE DATA
-#define TOTAL_WAVES 3
+#define TOTAL_WAVES 1
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float steepnesses[TOTAL_WAVES];
@@ -29,6 +29,10 @@ uniform float dir_angle;
 
 uniform int num_iterations;
 uniform uint seed;
+
+out float fs_displacement;
+out vec3 fs_position;
+out vec3 fs_normals;
 
 // TODO(nix3l): redo this whole thing to use better fbm
 
@@ -50,16 +54,7 @@ float to_float(uint i) {
     return uintBitsToFloat(i) - 1.0;
 }
 
-out float displacement;
-out vec3 fs_position;
-out vec3 fs_normals;
-
 #define USE_GERSTNER 1
-
-struct wave_displacement_s {
-    vec3 displacement;
-    vec3 normal;
-};
 
 vec3 calculate_gerstner(float xz, vec2 dir, float f, float phi, float a, float q) {
     vec3 gerstner = vec3(0.0);
@@ -85,6 +80,10 @@ vec3 calculate_gerstner_normal(float xz, vec2 dir, float f, float phi, float a, 
     return normal;
 }
 
+vec3 calculate_gerstner_derivative(float xz, vec2 dir, float f, float phi, float a, float q) {
+    return vec3(0.0);
+}
+
 vec3 calculate_normal(float xz, vec2 dir, float f, float phi, float a, float q) {
 #if USE_GERSTNER
     return calculate_gerstner_normal(xz, dir, f, phi, a, q);
@@ -101,9 +100,16 @@ vec3 calculate_displacement(float xz, vec2 dir, float f, float phi, float a, flo
 #endif
 }
 
-// TODO(nix3l): look into out/inout function parameters to get rid of the return value here
+vec3 calculate_derivative(float xz, vec2 dir, float f, float phi, float a, float q) {
+#if USE_GERSTNER
+    return calculate_gerstner(xz, dir, f, phi, a, q);
+#else
+    return vec3(0.0);
+#endif
+}
+
 // NOTE(nix3l): look at https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
-wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
+void calculate_wave_displacement(int index, vec3 position, inout vec3 displacement, inout vec3 normal) {
     vec2 dir = normalize(directions[index]);
     float xz = dir.x * position.x + dir.y * position.z;
 
@@ -117,8 +123,6 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
     uint hash_seed = pcg_hash(seed);
     float rand = to_float(hash_seed);
 
-    wave_displacement_s output = wave_displacement_s(vec3(0.0), vec3(0.0));
-
     for(int i = 0; i < num_iterations; i ++) {
         float wavelength = w * pow(w_factor, i);
         float amplitude  = a * pow(a_factor, i);
@@ -127,8 +131,9 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
         float phi        = time * phase;
         float steepness  = q / (frequency * amplitude * num_iterations);
 
-        output.displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
-        output.normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
+        displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
+        normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
+        // TODO(nix3l): derivative
 
         // get new random parameters for the next iteration
         hash_seed = pcg_hash(hash_seed);
@@ -142,32 +147,27 @@ wave_displacement_s calculate_wave_displacement(int index, vec3 position) {
         rand = to_float(hash_seed);
         q += steepness_range.x + (steepness_range.y - steepness_range.x) * rand;
     }
-
-    return output;
 }
 
 void main(void) {
     vec3 position = vs_position;
 
-    vec3 total_displacement = vec3(0.0f);
-    vec3 total_normal = vec3(0.0);
+    vec3 displacement = vec3(0.0);
+    vec3 normal = vec3(0.0);
 
-    vec3 last_normal = vec3(0.0);
-    for(int i = 0; i < TOTAL_WAVES; i ++) {
-        wave_displacement_s wave_displacement = calculate_wave_displacement(i, position);
-        last_normal = wave_displacement.normal;
-        total_displacement += wave_displacement.displacement;
-        total_normal += wave_displacement.normal;
-    }
+    vec3 last_derivative = vec3(0.0);
+    for(int i = 0; i < TOTAL_WAVES; i ++)
+        calculate_wave_displacement(i, position + last_derivative, displacement, normal, last_derivative);
 
-    position += total_displacement;
+    position += displacement;
 
 #if USE_GERSTNER
-    total_normal.y = 1.0 - total_normal.y;
+    normal.y = 1.0 - normal.y;
 #endif
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);
-    displacement = total_displacement.y;
+    fs_displacement = displacement.y;
     fs_position = vec3(transformation * vec4(position, 1.0));
-    fs_normals = normalize(total_normal);
+
+    fs_normals = mat3(transpose(inverse(transformation))) * normalize(normal);
 }
