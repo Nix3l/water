@@ -14,7 +14,7 @@ uniform mat4 projection_view;
 // because glsl is stupid when it comes to accessing structs in uniforms
 
 // WAVE DATA
-#define TOTAL_WAVES 1
+#define TOTAL_WAVES 3
 uniform float wavelengths[TOTAL_WAVES];
 uniform float amplitudes[TOTAL_WAVES];
 uniform float steepnesses[TOTAL_WAVES];
@@ -81,12 +81,35 @@ vec3 calculate_gerstner_normal(float xz, vec2 dir, float f, float phi, float a, 
 }
 
 vec3 calculate_gerstner_derivative(float xz, vec2 dir, float f, float phi, float a, float q) {
-    return vec3(0.0);
+    vec3 dx = vec3(0.0);
+    vec3 dz = vec3(0.0);
+
+    float fa = f * a;
+    float s = sin(f * xz + phi);
+    float c = cos(f * xz + phi);
+    
+    dx.x = 1 - q * dir.x * dir.x * fa * s;
+    dx.y = dir.x * fa * c;
+    dx.z = -q * dir.x * dir.y * fa * s;
+
+    dz.x = -q * dir.x * dir.y * fa * s;
+    dz.y = dir.y * fa * c;
+    dz.z = 1 - q * dir.y * dir.y * fa * s;
+
+    return dx + dz;
 }
 
 vec3 calculate_normal(float xz, vec2 dir, float f, float phi, float a, float q) {
 #if USE_GERSTNER
     return calculate_gerstner_normal(xz, dir, f, phi, a, q);
+#else
+    return vec3(0.0);
+#endif
+}
+
+vec3 calculate_derivative(float xz, vec2 dir, float f, float phi, float a, float q) {
+#if USE_GERSTNER
+    return calculate_gerstner_derivative(xz, dir, f, phi, a, q);
 #else
     return vec3(0.0);
 #endif
@@ -100,18 +123,10 @@ vec3 calculate_displacement(float xz, vec2 dir, float f, float phi, float a, flo
 #endif
 }
 
-vec3 calculate_derivative(float xz, vec2 dir, float f, float phi, float a, float q) {
-#if USE_GERSTNER
-    return calculate_gerstner(xz, dir, f, phi, a, q);
-#else
-    return vec3(0.0);
-#endif
-}
-
 // NOTE(nix3l): look at https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models
 void calculate_wave_displacement(int index, vec3 position, inout vec3 displacement, inout vec3 normal) {
     vec2 dir = normalize(directions[index]);
-    float xz = dir.x * position.x + dir.y * position.z;
+    vec3 offset_pos = position;
 
     float w = wavelengths[index];
     float a = amplitudes[index];
@@ -123,7 +138,14 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
     uint hash_seed = pcg_hash(seed);
     float rand = to_float(hash_seed);
 
+    vec3 last_derivative = vec3(0.0);
+
+    float seed = 0.0;
+
     for(int i = 0; i < num_iterations; i ++) {
+        offset_pos -= last_derivative;
+
+        float xz = dir.x * offset_pos.x + dir.y * offset_pos.z;
         float wavelength = w * pow(w_factor, i);
         float amplitude  = a * pow(a_factor, i);
         float frequency  = 2.0 / wavelength;
@@ -133,13 +155,12 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
 
         displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
         normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
-        // TODO(nix3l): derivative
+
+        last_derivative = calculate_derivative(xz, dir, frequency, phi, amplitude, steepness);
 
         // get new random parameters for the next iteration
-        hash_seed = pcg_hash(hash_seed);
-        rand = to_float(hash_seed);
-        dir = normalize(dir + vec2(cos(rand * dir_angle), sin(rand * dir_angle)));
-        xz = dir.x * position.x + dir.y * position.z;
+        seed += dir_angle;
+        dir = normalize(dir + vec2(cos(seed), sin(seed)));
 
         s *= speed_ramp;
 
@@ -155,9 +176,8 @@ void main(void) {
     vec3 displacement = vec3(0.0);
     vec3 normal = vec3(0.0);
 
-    vec3 last_derivative = vec3(0.0);
     for(int i = 0; i < TOTAL_WAVES; i ++)
-        calculate_wave_displacement(i, position + last_derivative, displacement, normal, last_derivative);
+        calculate_wave_displacement(i, position, displacement, normal);
 
     position += displacement;
 
@@ -169,5 +189,5 @@ void main(void) {
     fs_displacement = displacement.y;
     fs_position = vec3(transformation * vec4(position, 1.0));
 
-    fs_normals = mat3(transpose(inverse(transformation))) * normalize(normal);
+    fs_normals = normalize(normal);
 }
