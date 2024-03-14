@@ -236,7 +236,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     // PARAMS FILE
-    strcpy(game_state->params_filepath, "params");
+    strcpy(game_state->params_filepath, "ver1");
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -293,7 +293,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
     // TODO(nix3l): maybe dont give this its own arena, wasting memory
-    // load_parameters_from_file(game_state->params_filepath, &game_state->params_arena);
+    load_parameters_from_file(game_state->params_filepath, &game_state->params_arena);
 }
 
 static void terminate_game() {
