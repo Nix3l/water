@@ -55,7 +55,6 @@ typedef struct {
     u32 num_iterations;
     u32 seed;
 
-    v2f steepness_range;
     f32 speed_ramp;
     f32 angle_seed;
     f32 angle_offset;

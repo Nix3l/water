@@ -98,7 +98,6 @@ static void show_settings_window() {
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
         igDragScalar("iterations", ImGuiDataType_U32, &game_state->num_iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
         igDragScalar("seed", ImGuiDataType_U32, &game_state->seed, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
-        igDragFloat2("steepness", game_state->steepness_range.raw, 0.01f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat("speed ramp", &game_state->speed_ramp, 0.01f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat("angle seed", &game_state->angle_seed, 1.0f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat("angle offset", &game_state->angle_offset, 1.0f, 0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
@@ -212,7 +211,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->seed = 71892;
 
-    game_state->steepness_range = VECTOR_2(-0.15f, 0.15f);
     game_state->speed_ramp      = 1.02f;
     game_state->angle_seed      = 0.0f;
     game_state->angle_offset    = 0.0f;

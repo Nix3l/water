@@ -22,7 +22,6 @@ typedef struct {
     GLuint w_factor;
     GLuint a_factor;
 
-    GLuint steepness_range;
     GLuint speed_ramp;
     GLuint angle_seed;
     GLuint angle_offset;

@@ -32,7 +32,6 @@ static void load_uniforms(void* data) {
         shader_load_float(uniforms->a_factor   + i, wave.a_factor);
     }
 
-    shader_load_vec2(uniforms->steepness_range, game_state->steepness_range);
     shader_load_float(uniforms->speed_ramp, game_state->speed_ramp);
     shader_load_float(uniforms->angle_seed, RADIANS(game_state->angle_seed));
     shader_load_float(uniforms->angle_offset, RADIANS(game_state->angle_offset));
@@ -86,7 +85,6 @@ void init_water_shader() {
     uniforms->w_factor          = shader_get_uniform(shader, "w_factors[0]");
     uniforms->a_factor          = shader_get_uniform(shader, "a_factors[0]");
 
-    uniforms->steepness_range   = shader_get_uniform(shader, "steepness_range");
     uniforms->speed_ramp        = shader_get_uniform(shader, "speed_ramp");
     uniforms->angle_seed        = shader_get_uniform(shader, "angle_seed");
     uniforms->angle_offset      = shader_get_uniform(shader, "angle_offset");

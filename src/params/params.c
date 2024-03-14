@@ -107,14 +107,13 @@ static void load_param(char* line) {
     char val[32];
     sscanf(line, "%s [%[^]]", name, val);
 
-    GET_PARAM_FLT3(game_state, water_entity.transform.position, name, val);
+    GET_PARAM_FLT3(game_state, water_entity.transform.scale, name, val);
 
     GET_PARAM_U32 (game_state, num_iterations,    name, val);
     GET_PARAM_U32 (game_state, seed,              name, val);
     GET_PARAM_FLT (game_state, angle_seed,        name, val);
     GET_PARAM_FLT (game_state, angle_offset,      name, val);
     GET_PARAM_FLT (game_state, vertex_drag,       name, val);
-    GET_PARAM_FLT2(game_state, steepness_range,   name, val);
     GET_PARAM_FLT (game_state, speed_ramp,        name, val);
     GET_PARAM_FLT3(game_state, water_color,       name, val);
     GET_PARAM_FLT3(game_state, tip_color,         name, val);
@@ -216,7 +215,6 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_FLT (data, game_state, angle_seed);
     SET_PARAM_FLT (data, game_state, angle_offset);
     SET_PARAM_FLT (data, game_state, vertex_drag);
-    SET_PARAM_FLT2(data, game_state, steepness_range);
     SET_PARAM_FLT (data, game_state, speed_ramp);
     SET_PARAM_FLT3(data, game_state, water_color);
     SET_PARAM_FLT3(data, game_state, tip_color);

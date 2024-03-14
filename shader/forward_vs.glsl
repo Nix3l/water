@@ -26,7 +26,6 @@ uniform vec2  directions[TOTAL_WAVES];
 uniform float w_factors[TOTAL_WAVES];
 uniform float a_factors[TOTAL_WAVES];
 
-uniform vec2 steepness_range;
 uniform float speed_ramp;
 uniform float angle_seed;
 uniform float angle_offset;
@@ -140,9 +139,6 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
     float w_factor = w_factors[index];
     float a_factor = a_factors[index];
     
-    uint hash_seed = pcg_hash(seed);
-    float rand = to_float(hash_seed);
-
     vec3 last_derivative = vec3(0.0);
 
     float angle = angle_seed;
@@ -163,15 +159,10 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
 
         last_derivative = calculate_derivative(xz, dir, frequency, phi, amplitude, steepness);
 
-        // get new random parameters for the next iteration
+        // get new parameters for the next iteration
         angle += angle_offset;
         dir = normalize(dir + vec2(cos(angle), sin(angle)));
-
         s *= speed_ramp;
-
-        hash_seed = pcg_hash(hash_seed);
-        rand = to_float(hash_seed);
-        q += steepness_range.x + (steepness_range.y - steepness_range.x) * rand;
     }
 }
 
