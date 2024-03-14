@@ -57,7 +57,9 @@ typedef struct {
 
     v2f steepness_range;
     f32 speed_ramp;
-    f32 dir_angle;
+    f32 angle_seed;
+    f32 angle_offset;
+    f32 vertex_drag;
 
     v3f water_color;
 

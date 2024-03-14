@@ -1,3 +1,6 @@
+// TODO(nix3l): add a vertex drag parameter
+// TODO(nix3l): 
+
 #version 330 core
 
 layout (location = 0) in vec3 vs_position;
@@ -25,7 +28,9 @@ uniform float a_factors[TOTAL_WAVES];
 
 uniform vec2 steepness_range;
 uniform float speed_ramp;
-uniform float dir_angle;
+uniform float angle_seed;
+uniform float angle_offset;
+uniform float vertex_drag;
 
 uniform int num_iterations;
 uniform uint seed;
@@ -140,10 +145,10 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
 
     vec3 last_derivative = vec3(0.0);
 
-    float seed = 0.0;
+    float angle = angle_seed;
 
     for(int i = 0; i < num_iterations; i ++) {
-        offset_pos -= last_derivative;
+        offset_pos -= last_derivative * vertex_drag; // apply domain warping
 
         float xz = dir.x * offset_pos.x + dir.y * offset_pos.z;
         float wavelength = w * pow(w_factor, i);
@@ -159,8 +164,8 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
         last_derivative = calculate_derivative(xz, dir, frequency, phi, amplitude, steepness);
 
         // get new random parameters for the next iteration
-        seed += dir_angle;
-        dir = normalize(dir + vec2(cos(seed), sin(seed)));
+        angle += angle_offset;
+        dir = normalize(dir + vec2(cos(angle), sin(angle)));
 
         s *= speed_ramp;
 

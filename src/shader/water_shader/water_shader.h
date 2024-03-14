@@ -24,7 +24,9 @@ typedef struct {
 
     GLuint steepness_range;
     GLuint speed_ramp;
-    GLuint dir_angle;
+    GLuint angle_seed;
+    GLuint angle_offset;
+    GLuint vertex_drag;
 
     GLuint num_iterations;
     GLuint seed;
