@@ -1,8 +1,9 @@
 #version 330 core
 
-in float fs_displacement;
 in vec3 fs_position;
 in vec3 fs_normals;
+in vec3 fs_halfway_dir;
+in float fs_displacement;
 
 uniform vec3 light_dir;
 uniform vec3 light_color;
@@ -26,8 +27,9 @@ out vec4 out_color;
 
 void main(void) {
     // DIFFUSE LIGHTING
-    float ndotl = max(dot(fs_normals, -light_dir), 0.0);
-    float diffuse_factor = max(ndotl, ambient);
+    float ndotl = dot(fs_normals, -light_dir);
+    float ndotl01 = max(ndotl, 0.0);
+    float diffuse_factor = max(ndotl01, ambient);
 
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
@@ -35,8 +37,7 @@ void main(void) {
     float specular_lighting = specular_strength * ndotl * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
 
     // SCHLICK FRESNEL
-    vec3 halfway_dir = camera_dir + light_dir;
-    float exponential = pow(1.0 - max(dot(fs_normals, halfway_dir), 0.0), 5.0);
+    float exponential = ndotl < 0.0 ? 0.0 : pow(1.0 - max(dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
     float fresnel_factor = exponential + (1.0 - exponential) * r0;
 
     specular_lighting *= fresnel_factor;

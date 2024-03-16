@@ -236,7 +236,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     // PARAMS FILE
-    strcpy(game_state->params_filepath, "ver1");
+    strcpy(game_state->params_filepath, "ver2");
 
     // RENDERER
     game_state->camera = (camera_s) {

@@ -1,6 +1,3 @@
-// TODO(nix3l): add a vertex drag parameter
-// TODO(nix3l): 
-
 #version 330 core
 
 layout (location = 0) in vec3 vs_position;
@@ -34,9 +31,13 @@ uniform float vertex_drag;
 uniform int num_iterations;
 uniform uint seed;
 
-out float fs_displacement;
+uniform vec3 light_dir;
+uniform vec3 camera_pos;
+
 out vec3 fs_position;
 out vec3 fs_normals;
+out vec3 fs_halfway_dir;
+out float fs_displacement;
 
 // TODO(nix3l): redo this whole thing to use better fbm
 
@@ -182,8 +183,10 @@ void main(void) {
 #endif
 
     gl_Position = projection_view * transformation * vec4(position, 1.0);
-    fs_displacement = displacement.y;
-    fs_position = vec3(transformation * vec4(position, 1.0));
 
-    fs_normals = normalize(normal);
+    fs_displacement = displacement.y;
+    fs_position     = vec3(transformation * vec4(position, 1.0));
+    // NOTE(nix3l): probably better to load this in from the cpu
+    fs_normals      = normalize(mat3(transpose(inverse(transformation))) * normal);
+    fs_halfway_dir  = normalize(camera_pos - fs_position) + light_dir;
 }
