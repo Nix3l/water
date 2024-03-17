@@ -22,13 +22,13 @@ uniform float speeds[TOTAL_WAVES];
 uniform vec2  directions[TOTAL_WAVES];
 uniform float w_factors[TOTAL_WAVES];
 uniform float a_factors[TOTAL_WAVES];
+uniform int   num_iterations[TOTAL_WAVES];
 
 uniform float speed_ramp;
 uniform float angle_seed;
 uniform float angle_offset;
 uniform float vertex_drag;
 
-uniform int num_iterations;
 uniform uint seed;
 
 uniform vec3 light_dir;
@@ -93,13 +93,13 @@ vec3 calculate_gerstner_derivative(float xz, vec2 dir, float f, float phi, float
     float s = sin(f * xz + phi);
     float c = cos(f * xz + phi);
     
-    dx.x = 1 - q * dir.x * dir.x * fa * s;
+    dx.x = 1.0 - q * dir.x * dir.x * fa * s;
     dx.y = dir.x * fa * c;
     dx.z = -q * dir.x * dir.y * fa * s;
 
     dz.x = -q * dir.x * dir.y * fa * s;
     dz.y = dir.y * fa * c;
-    dz.z = 1 - q * dir.y * dir.y * fa * s;
+    dz.z = 1.0 - q * dir.y * dir.y * fa * s;
 
     return dx + dz;
 }
@@ -144,7 +144,7 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
 
     float angle = angle_seed;
 
-    for(int i = 0; i < num_iterations; i ++) {
+    for(int i = 0; i < num_iterations[index]; i ++) {
         offset_pos -= last_derivative * vertex_drag; // apply domain warping
 
         float xz = dir.x * offset_pos.x + dir.y * offset_pos.z;
@@ -153,7 +153,7 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
         float frequency  = 2.0 / wavelength;
         float phase      = s * frequency;
         float phi        = time * phase;
-        float steepness  = q / (frequency * amplitude * num_iterations);
+        float steepness  = q / (frequency * amplitude * num_iterations[index]);
 
         displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
         normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);

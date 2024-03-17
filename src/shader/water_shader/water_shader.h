@@ -27,7 +27,7 @@ typedef struct {
     GLuint angle_offset;
     GLuint vertex_drag;
 
-    GLuint num_iterations;
+    GLuint iterations;
     GLuint seed;
 
     // FRAGMENT
@@ -60,6 +60,8 @@ typedef struct {
 
     f32 w_factor;
     f32 a_factor;
+
+    u32 iterations;
 } wave_s;
 
 #endif

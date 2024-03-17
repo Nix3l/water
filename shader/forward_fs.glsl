@@ -26,28 +26,31 @@ uniform vec3 ambient_color;
 out vec4 out_color;
 
 void main(void) {
+    vec3 color = ambient_color * ambient;
+
     // DIFFUSE LIGHTING
     float ndotl = dot(fs_normals, -light_dir);
     float ndotl01 = max(ndotl, 0.0);
-    float diffuse_factor = max(ndotl01, ambient);
+    float diffuse_factor = max(ndotl, ambient);
 
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
     vec3 reflected_light = normalize(reflect(light_dir, fs_normals));
-    float specular_lighting = specular_strength * ndotl * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
+    float specular_lighting = specular_strength * ndotl01 * pow(max(dot(camera_dir, reflected_light), 0.0), specular_factor);
 
     // SCHLICK FRESNEL
-    float exponential = ndotl < 0.0 ? 0.0 : pow(1.0 - max(dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
+    float exponential = pow(1.0 - max(dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
     float fresnel_factor = exponential + (1.0 - exponential) * r0;
 
     specular_lighting *= fresnel_factor;
 
-    // TOTAL LIGHTING
-    vec3 lighting = light_color * light_intensity * (diffuse_factor + specular_lighting);
+    color += water_color * light_color * light_intensity * (diffuse_factor + specular_lighting);
 
     // TIP HIGHLIGHTING
-    float tip_factor = exp(max(fs_displacement, 0.0) / tip_attenuation) - 1;
+    float tip_factor = exp(max(fs_displacement, 0.0) / tip_attenuation) - 1.0;
     vec3 tip_highlighting = tip_color * tip_factor;
 
-    out_color = vec4(water_color * lighting + ambient_color * ambient + tip_highlighting, 1.0);
+    color += tip_highlighting;
+
+    out_color = vec4(color, 1.0);
 }

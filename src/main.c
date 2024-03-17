@@ -1,5 +1,5 @@
 // CURRENT:
-// TODO(nix3l): fix the lighting so it doesnt look like a piece of cloth
+// TODO(nix3l): look at mesh.c
 // TODO(nix3l): do some tesselation work to help performance
 // TODO(nix3l): set up some post processing to make the scene look nicer
 
@@ -96,7 +96,6 @@ static void show_settings_window() {
     const u32 uzero = 0;
     const u32 umax = MAX_u32;
     if(igCollapsingHeader_TreeNodeFlags("waves", ImGuiTreeNodeFlags_None)) {
-        igDragScalar("iterations", ImGuiDataType_U32, &game_state->num_iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
         igDragScalar("seed", ImGuiDataType_U32, &game_state->seed, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
         igDragFloat("speed ramp", &game_state->speed_ramp, 0.01f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
         igDragFloat("angle seed", &game_state->angle_seed, 1.0f, -MAX_f32, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -110,6 +109,7 @@ static void show_settings_window() {
             snprintf(label, 8, "wave %u", i);
             
             if(igTreeNode_Str(label)) {
+                igDragScalar("iterations", ImGuiDataType_U32, &wave->iterations, 0.1f, &uzero, &umax, "%u", ImGuiSliderFlags_None);
                 igDragFloat("wavelength", &wave->wavelength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("amplitude", &wave->amplitude, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
                 igDragFloat("steepness", &wave->steepness, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -216,8 +216,6 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->angle_offset    = 0.0f;
     game_state->vertex_drag     = 1.0f;
 
-    game_state->num_iterations = 4;
-
     for(usize i = 0; i < TOTAL_WAVES; i ++) {
         game_state->waves[i] = (wave_s) {
             .wavelength = 48.0f,
@@ -231,7 +229,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
                 ),
 
             .w_factor = 0.857f,
-            .a_factor = 0.730f
+            .a_factor = 0.730f,
+            .iterations = 4
         };
     }
 
@@ -277,8 +276,8 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->water_entity.mesh = primitive_plane_mesh(
         VECTOR_3(-128.0f, 0.0f, -128.0f),
-        (v2i) { .x = 1024, .y = 1024 },
-        VECTOR_2(256.0f, 256.0f),
+        (v2i) { .x = 1024, .y = 1024},
+        VECTOR_2(512.0f, 512.0f),
         &game_state->mesh_arena
     );
 

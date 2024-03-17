@@ -30,6 +30,7 @@ static void load_uniforms(void* data) {
         shader_load_vec2 (uniforms->direction  + i, wave.direction);
         shader_load_float(uniforms->w_factor   + i, wave.w_factor);
         shader_load_float(uniforms->a_factor   + i, wave.a_factor);
+        shader_load_int  (uniforms->iterations + i, wave.iterations);
     }
 
     shader_load_float(uniforms->speed_ramp, game_state->speed_ramp);
@@ -37,7 +38,6 @@ static void load_uniforms(void* data) {
     shader_load_float(uniforms->angle_offset, RADIANS(game_state->angle_offset));
     shader_load_float(uniforms->vertex_drag, game_state->vertex_drag);
 
-    shader_load_int(uniforms->num_iterations, game_state->num_iterations);
     shader_load_uint(uniforms->seed, game_state->seed);
 
     // FRAGMENT SHADER
@@ -84,13 +84,13 @@ void init_water_shader() {
     uniforms->direction         = shader_get_uniform(shader, "directions[0]");
     uniforms->w_factor          = shader_get_uniform(shader, "w_factors[0]");
     uniforms->a_factor          = shader_get_uniform(shader, "a_factors[0]");
+    uniforms->iterations        = shader_get_uniform(shader, "num_iterations[0]");
 
     uniforms->speed_ramp        = shader_get_uniform(shader, "speed_ramp");
     uniforms->angle_seed        = shader_get_uniform(shader, "angle_seed");
     uniforms->angle_offset      = shader_get_uniform(shader, "angle_offset");
     uniforms->vertex_drag       = shader_get_uniform(shader, "vertex_drag");
 
-    uniforms->num_iterations    = shader_get_uniform(shader, "num_iterations");
     uniforms->seed              = shader_get_uniform(shader, "seed");
 
     // FRAGMENT SHADER

@@ -95,6 +95,7 @@ static usize load_wave(char** lines, usize i, usize wave_index) {
         GET_PARAM_FLT2(wave, direction,  name, value);
         GET_PARAM_FLT (wave, w_factor,   name, value);
         GET_PARAM_FLT (wave, a_factor,   name, value);
+        GET_PARAM_U32 (wave, iterations, name, value);
     }
 
     // there should not be a situation in which this is reached
@@ -109,7 +110,6 @@ static void load_param(char* line) {
 
     GET_PARAM_FLT3(game_state, water_entity.transform.scale, name, val);
 
-    GET_PARAM_U32 (game_state, num_iterations,    name, val);
     GET_PARAM_U32 (game_state, seed,              name, val);
     GET_PARAM_FLT (game_state, angle_seed,        name, val);
     GET_PARAM_FLT (game_state, angle_offset,      name, val);
@@ -187,6 +187,8 @@ static void write_wave_params(char* data, wave_s* wave) {
     SET_PARAM_FLT(data, wave, w_factor);
     strcat(data, "\t");
     SET_PARAM_FLT(data, wave, a_factor);
+    strcat(data, "\t");
+    SET_PARAM_U32(data, wave, iterations);
 }
 
 void write_parameters_to_file(char* filepath, arena_s* arena) {
@@ -210,7 +212,6 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
 
     // write params
     SET_PARAM_FLT3(data, game_state, water_entity.transform.scale);
-    SET_PARAM_U32 (data, game_state, num_iterations);
     SET_PARAM_U32 (data, game_state, seed);
     SET_PARAM_FLT (data, game_state, angle_seed);
     SET_PARAM_FLT (data, game_state, angle_offset);

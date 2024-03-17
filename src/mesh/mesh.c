@@ -299,3 +299,7 @@ mesh_s primitive_plane_mesh(v3f bottom_left, v2i num_vertices, v2f world_size, a
 
     return mesh;
 }
+
+mesh_s primitive_plane_mesh_quads(v3f bottom_left, u32 divisions, v2f world_size, arena_s* arena) {
+    // TODO
+}

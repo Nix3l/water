@@ -52,7 +52,6 @@ typedef struct {
     // WATER SHADER VARIABLES
     wave_s waves[TOTAL_WAVES];
 
-    u32 num_iterations;
     u32 seed;
 
     f32 speed_ramp;

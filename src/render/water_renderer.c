@@ -38,6 +38,8 @@ void render_water(entity_s* entity) {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 
+    // glPatchParameteri(GL_PATCH_VERTICES, 4);
+
     glViewport(0, 0, game_state->window.width, game_state->window.height);
 
     shader_start(&game_state->water_shader);
