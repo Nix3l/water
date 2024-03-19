@@ -69,6 +69,10 @@ typedef struct {
 
     f32 r0;
 
+    f32 scatter_amount;
+    f32 scatter_angle;
+    v3f scatter_color;
+
     f32 ambient;
     v3f ambient_color;
 

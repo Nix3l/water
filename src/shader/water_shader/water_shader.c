@@ -56,6 +56,10 @@ static void load_uniforms(void* data) {
 
     shader_load_float(uniforms->r0, game_state->r0);
 
+    shader_load_float(uniforms->scatter_amount, game_state->scatter_amount);
+    shader_load_float(uniforms->scatter_angle, game_state->scatter_angle);
+    shader_load_vec3(uniforms->scatter_color, game_state->scatter_color);
+
     shader_load_float(uniforms->ambient, game_state->ambient);
     shader_load_vec3(uniforms->ambient_color, game_state->ambient_color);
 }
@@ -108,6 +112,10 @@ void init_water_shader() {
     uniforms->camera_pos        = shader_get_uniform(shader, "camera_pos");
     
     uniforms->r0                = shader_get_uniform(shader, "r0");
+
+    uniforms->scatter_amount    = shader_get_uniform(shader, "scatter_amount");
+    uniforms->scatter_color     = shader_get_uniform(shader, "scatter_color");
+    uniforms->scatter_angle     = shader_get_uniform(shader, "scatter_angle");
 
     uniforms->ambient           = shader_get_uniform(shader, "ambient");
     uniforms->ambient_color     = shader_get_uniform(shader, "ambient_color");

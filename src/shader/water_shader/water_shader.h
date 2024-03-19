@@ -46,6 +46,10 @@ typedef struct {
 
     GLuint r0;
 
+    GLuint scatter_amount;
+    GLuint scatter_color;
+    GLuint scatter_angle;
+
     GLuint ambient;
     GLuint ambient_color;
 } water_shader_uniforms_s;

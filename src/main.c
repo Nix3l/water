@@ -1,6 +1,6 @@
 // CURRENT:
-// TODO(nix3l): look at mesh.c
-// TODO(nix3l): do some tesselation work to help performance
+// TODO(nix3l): set up cubemaps + skybox
+// TODO(nix3l): set up environment reflections
 // TODO(nix3l): set up some post processing to make the scene look nicer
 
 #include "game.h"
@@ -140,6 +140,10 @@ static void show_settings_window() {
     igDragFloat("ambient", &game_state->ambient, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("ambient color", game_state->ambient_color.raw, ImGuiColorEditFlags_None);
 
+    igDragFloat("scatter amount", &game_state->scatter_amount, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("scatter angle", &game_state->scatter_angle, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igColorEdit3("scatter color", game_state->scatter_color.raw, ImGuiColorEditFlags_None);
+
     igEnd();
 }
 
@@ -235,7 +239,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     // PARAMS FILE
-    strcpy(game_state->params_filepath, "ver2");
+    strcpy(game_state->params_filepath, "ver3");
 
     // RENDERER
     game_state->camera = (camera_s) {

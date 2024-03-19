@@ -127,6 +127,9 @@ static void load_param(char* line) {
     GET_PARAM_FLT2(game_state, sun.direction,     name, val);
     GET_PARAM_FLT (game_state, sun.intensity,     name, val);
     GET_PARAM_FLT (game_state, time_scale,        name, val);
+    GET_PARAM_FLT (game_state, scatter_amount,    name, val);
+    GET_PARAM_FLT3(game_state, scatter_color,     name, val);
+    GET_PARAM_FLT (game_state, scatter_angle,     name, val);
 }
 
 void load_parameters_from_file(char* filepath, arena_s* arena) {
@@ -229,6 +232,9 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_FLT2(data, game_state, sun.direction);
     SET_PARAM_FLT (data, game_state, sun.intensity);
     SET_PARAM_FLT (data, game_state, time_scale);
+    SET_PARAM_FLT (data, game_state, scatter_amount);
+    SET_PARAM_FLT (data, game_state, scatter_angle);
+    SET_PARAM_FLT3(data, game_state, scatter_color);
 
     // write the collated data to the given file
     platform_write_to_file(filepath, data, strlen(data), false);

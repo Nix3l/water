@@ -39,8 +39,6 @@ out vec3 fs_normals;
 out vec3 fs_halfway_dir;
 out float fs_displacement;
 
-// TODO(nix3l): redo this whole thing to use better fbm
-
 // NOTE(nix3l): also see https://amindforeverprogramming.blogspot.com/2013/07/random-floats-in-glsl-330.html
 // for more info on random in shaders 
 
