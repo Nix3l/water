@@ -48,7 +48,7 @@ void main(void) {
     float specular_lighting = specular_strength * ndotl01 * pow(max(vdotr, 0.0), specular_factor);
 
     // SCHLICK FRESNEL
-    float exponential = pow(1.0 - max(dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
+    float exponential = pow(max(1.0 - dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
     float fresnel_factor = exponential + (1.0 - exponential) * r0;
 
     specular_lighting *= fresnel_factor;
@@ -57,15 +57,13 @@ void main(void) {
 
     // TIP HIGHLIGHTING
     float tip_factor = exp(max(fs_displacement, 0.0) / tip_attenuation) - 1.0;
-    vec3 tip_highlighting = tip_color * tip_factor;
-
-    color += tip_highlighting;
+    color += tip_color * tip_factor;
 
     // SCATTERING
     // NOTE(nix3l): https://github.com/muckSponge/Optically-Realistic-Water/blob/master/Water/Assets/Water/Shaders/WaterSurface.shader
     // what are these values? who knows!
-    float s = max(dot(reflected_light, camera_dir) * 2.0 - 1.0, 0.0);
-    float sa = exp(scatter_angle * s);
+    float s = max(vdotr * 2.0 - 1.0, 0.0);
+    float sa = pow(s, 1.0 / scatter_angle); // exp(s * scatter_angle);
     float scatter_factor = clamp01(s * scatter_amount * clamp01(ndotl * 0.7 + 0.3)) * sa;
     color += scatter_factor * mix(scatter_color * vec3(1.0, 0.4, 0.0), scatter_color, light_color);
 

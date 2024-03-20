@@ -156,7 +156,7 @@ void calculate_wave_displacement(int index, vec3 position, inout vec3 displaceme
         displacement += calculate_displacement(xz, dir, frequency, phi, amplitude, steepness);
         normal       += calculate_normal(xz, dir, frequency, phi, amplitude, steepness);
 
-        last_derivative = calculate_derivative(xz, dir, frequency, phi, amplitude, steepness);
+        last_derivative = calculate_derivative(xz, dir, frequency, phi, amplitude, steepness) * s;
 
         // get new parameters for the next iteration
         angle += angle_offset;
