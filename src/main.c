@@ -1,7 +1,10 @@
 // CURRENT:
-// TODO(nix3l): set up cubemaps + skybox
+// TODO(nix3l): fix skybox
 // TODO(nix3l): set up environment reflections
+// TODO(nix3l): add some fog and make the sun visible
 // TODO(nix3l): set up some post processing to make the scene look nicer
+
+#define STB_IMAGE_IMPLEMENTATION
 
 #include "game.h"
 #include "util/log.h"
@@ -204,6 +207,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
     game_state->fbo_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
     game_state->params_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
+    game_state->texture_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
@@ -211,6 +215,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     init_input();
 
     // SHADERS
+    init_skybox_shader();
     init_water_shader();
 
     game_state->seed = 71892;
@@ -273,6 +278,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->ambient = 0.24f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
+    init_skybox_renderer();
     init_water_renderer();
 
     // GUI
@@ -291,11 +297,18 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
         .scale    = VECTOR_3(1.0f, 0.4f, 1.0f)
     };
 
+    game_state->skybox = create_cubemap((char*[6]) {
+            "res/graycloud_rt.jpg", "res/graycloud_lf.jpg",
+            "res/graycloud_up.jpg", "res/graycloud_dn.jpg",
+            "res/graycloud_ft.jpg", "res/graycloud_bk.jpg"
+        }, &game_state->texture_arena);
+
     game_state->time_scale = 1.0f;
 
     glfwSetInputMode(game_state->window.glfw_window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
     // TODO(nix3l): maybe dont give this its own arena, wasting memory
+    // look into frame arenas for stuff like this
     load_parameters_from_file(game_state->params_filepath, &game_state->params_arena);
 }
 
@@ -321,6 +334,7 @@ int main(void) {
 
         update_camera(&game_state->camera);
         render_water(&game_state->water_entity);
+        render_skybox(&game_state->skybox, &game_state->water_renderer.framebuffer);
 
         fbo_copy_texture_to_screen(&game_state->water_renderer.framebuffer, GL_COLOR_ATTACHMENT0);
 

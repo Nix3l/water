@@ -18,7 +18,7 @@ static GLuint compile_shader(char* src_code, GLuint shader_type) {
         // is there a better solution?
         char log[512];
         glGetShaderInfoLog(id, sizeof(log), NULL, log);
-        LOG_ERR("failed to compile shader:\n%s\n", log);
+        LOG_ERR("failed to compile %s shader:\n%s\n", shader_type == GL_VERTEX_SHADER ? "vertex" : "fragment", log);
     }
 
     return id;

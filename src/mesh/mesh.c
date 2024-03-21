@@ -66,6 +66,41 @@ mesh_s create_mesh(
     return mesh;
 }
 
+mesh_s create_mesh_arrays(
+        f32* vertex_data, f32* uvs_data, f32* normals_data, f32* colors_data, 
+        u32 num_vertices) {
+    mesh_s mesh;
+
+    if(!vertex_data || num_vertices == 0) {
+        LOG_ERR("tried to load mesh without vertex data!\n");
+        return (mesh_s) {};
+    }
+
+    mesh.data = MESH_VERTICES;
+    if(uvs_data) mesh.data |= MESH_UVS;
+    if(normals_data) mesh.data |= MESH_NORMALS;
+    if(colors_data) mesh.data |= MESH_COLORS;
+
+    glGenVertexArrays(1, &mesh.vao);
+    glBindVertexArray(mesh.vao);
+
+    mesh.vertices_vbo = create_vbo(MESH_ATTRIBUTE_VERTICES, 3, vertex_data, num_vertices);
+    mesh.uvs_vbo = uvs_data ? create_vbo(MESH_ATTRIBUTE_UVS, 2, uvs_data, num_vertices) : 0;
+    mesh.normals_vbo = normals_data ? create_vbo(MESH_ATTRIBUTE_NORMALS, 3, normals_data, num_vertices) : 0;
+    mesh.colors_vbo = colors_data ? create_vbo(MESH_ATTRIBUTE_COLORS, 3, colors_data, num_vertices) : 0;
+    mesh.indices_vbo = 0;
+
+    mesh.index_count = 0;
+    mesh.vertex_count = num_vertices;
+
+    mesh.name = NULL;
+    mesh.full_path = NULL;
+
+    glBindVertexArray(0);
+
+    return mesh;
+}
+
 void mesh_enable_attributes(mesh_s* mesh) {
     if(mesh->data & MESH_VERTICES)
         glEnableVertexAttribArray(MESH_ATTRIBUTE_VERTICES);

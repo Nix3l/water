@@ -47,6 +47,10 @@ mesh_s create_mesh(
         GLuint* indices,
         u32 num_indices, u32 num_vertices);
 
+mesh_s create_mesh_arrays(
+        f32* vertex_data, f32* uvs_data, f32* normals_data, f32* colors_data, 
+        u32 num_vertices);
+
 void mesh_enable_attributes(mesh_s* mesh);
 void mesh_disable_attributes(mesh_s* mesh);
 
