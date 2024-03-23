@@ -8,5 +8,7 @@ out vec3 fs_texcoord;
 
 void main(void) {
     gl_Position = projection_view * vec4(vs_position, 1.0);
+    gl_Position = gl_Position.xyww;
+
     fs_texcoord = vs_position;
 }

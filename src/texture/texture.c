@@ -72,14 +72,36 @@ texture_s create_cubemap(char** filenames, arena_s* arena) {
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_CUBE_MAP, texture.id);
 
-    for(usize i = 0; i < 6; i ++)
-        load_image_stb(filenames[i], GL_TEXTURE_CUBE_MAP_NEGATIVE_X + i);
+    for(usize i = 0; i < 6; i ++) {
+        stbi_set_flip_vertically_on_load(false);
+
+        i32 width, height, num_channels;
+        unsigned char* data = stbi_load(filenames[i], &width, &height, &num_channels, 3);
+        if(!data) {
+            LOG_ERR("error loading cubemap texture [%s]: %s\n", filenames[i], stbi_failure_reason());
+            continue;
+        }
+
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+            0,
+            GL_RGB,
+            width,
+            height,
+            0,
+            GL_RGB,
+            GL_UNSIGNED_BYTE,
+            data);
+
+        stbi_image_free(data);
+    }
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    // NOTE(nix3l): these are order to prevent seams
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R,     GL_CLAMP_TO_EDGE);
 
     texture.full_path = NULL;
     texture.name = NULL;

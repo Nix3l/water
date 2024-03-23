@@ -43,13 +43,15 @@ static void show_debug_stats_window() {
             game_state->shader_arena.size + 
             game_state->mesh_arena.size +
             game_state->fbo_arena.size +
-            game_state->params_arena.size,
+            game_state->params_arena.size +
+            game_state->texture_arena.size,
             game_memory->permenant_storage_size);
     igIndent(12.0f);
     igText("of which state: %u\n", sizeof(game_state_s));
     igText("of which shaders: %u/%u\n", game_state->shader_arena.size, game_state->shader_arena.capacity);
     igText("of which framebuffers: %u/%u\n", game_state->fbo_arena.size, game_state->fbo_arena.capacity);
     igText("of which parameters: %u/%u\n", game_state->params_arena.size, game_state->params_arena.capacity);
+    igText("of which textures: %u/%u\n", game_state->texture_arena.size, game_state->texture_arena.capacity);
     igText("of which meshes: %u/%u\n", game_state->mesh_arena.size, game_state->mesh_arena.capacity);
     igUnindent(12.0f);
 
@@ -298,9 +300,9 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     };
 
     game_state->skybox = create_cubemap((char*[6]) {
-            "res/graycloud_rt.jpg", "res/graycloud_lf.jpg",
-            "res/graycloud_up.jpg", "res/graycloud_dn.jpg",
-            "res/graycloud_ft.jpg", "res/graycloud_bk.jpg"
+            "res/bluecloud_ft.jpg", "res/bluecloud_bk.jpg",
+            "res/bluecloud_up.jpg", "res/bluecloud_dn.jpg",
+            "res/bluecloud_rt.jpg", "res/bluecloud_lf.jpg"
         }, &game_state->texture_arena);
 
     game_state->time_scale = 1.0f;
