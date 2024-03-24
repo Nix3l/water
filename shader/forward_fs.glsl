@@ -5,6 +5,8 @@ in vec3 fs_normals;
 in vec3 fs_halfway_dir;
 in float fs_displacement;
 
+uniform float normal_bias;
+
 uniform vec3 light_dir;
 uniform vec3 light_color;
 uniform float light_intensity;
@@ -27,6 +29,10 @@ uniform vec3 scatter_color;
 uniform float ambient;
 uniform vec3 ambient_color;
 
+uniform float reflection_strength;
+uniform float env_normal_bias;
+uniform samplerCube environment;
+
 out vec4 out_color;
 
 float clamp01(float x) {
@@ -35,25 +41,37 @@ float clamp01(float x) {
 
 void main(void) {
     vec3 color = ambient_color * ambient;
+    vec3 normal = fs_normals;
+    normal.xz *= normal_bias;
+    normal = normalize(normal);
 
     // DIFFUSE LIGHTING
-    float ndotl = dot(fs_normals, -light_dir);
+    float ndotl = dot(normal, -light_dir);
     float ndotl01 = max(ndotl, 0.0);
     float diffuse_factor = max(ndotl, ambient);
 
     // SPECULAR LIGHTING
     vec3 camera_dir = normalize(camera_pos - fs_position);
-    vec3 reflected_light = normalize(reflect(light_dir, fs_normals));
+    vec3 reflected_light = normalize(reflect(light_dir, normal));
     float vdotr = dot(camera_dir, reflected_light);
     float specular_lighting = specular_strength * ndotl01 * pow(max(vdotr, 0.0), specular_factor);
 
     // SCHLICK FRESNEL
-    float exponential = pow(max(1.0 - dot(fs_normals, fs_halfway_dir), 0.0), 5.0);
+    float exponential = pow(max(1.0 - max(dot(normal, fs_halfway_dir), 0.0), 0.0), 5.0);
     float fresnel_factor = exponential + (1.0 - exponential) * r0;
 
     specular_lighting *= fresnel_factor;
 
     color += water_color * light_color * light_intensity * (diffuse_factor + specular_lighting);
+
+    // ENVIRONMENT REFLECTIONS
+    vec3 env_normal = normal;
+    env_normal.xz *= env_normal_bias;
+    env_normal = normalize(env_normal);
+
+    vec3 reflected_view = normalize(reflect(camera_dir, env_normal));
+    vec3 environment_color = texture(environment, reflected_view).rgb;
+    color += environment_color * reflection_strength * fresnel_factor;
 
     // TIP HIGHLIGHTING
     float tip_factor = exp(max(fs_displacement, 0.0) / tip_attenuation) - 1.0;

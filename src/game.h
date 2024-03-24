@@ -66,6 +66,8 @@ typedef struct {
     f32 angle_offset;
     f32 vertex_drag;
 
+    f32 normal_bias;
+
     v3f water_color;
 
     v3f tip_color;
@@ -82,6 +84,9 @@ typedef struct {
 
     f32 ambient;
     v3f ambient_color;
+
+    f32 env_normal_bias;
+    f32 reflection_strength;
 
     // TIME SCALE
     f32 time_scale;

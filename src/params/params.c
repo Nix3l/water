@@ -17,22 +17,22 @@
 #define FMT_FLT3 "%f, %f, %f"
 
 #define GET_PARAM_U32(_parent, _param, _name, _val) do { \
-    if(strncmp((_name), #_param, strlen(#_param)) == 0) \
+    if(strncmp((_name), #_param, strlen(_name)) == 0) \
         sscanf((_val), FMT_U32, &(_parent)->_param); \
 } while(0)
 
 #define GET_PARAM_FLT(_parent, _param, _name, _val) do { \
-    if(strncmp((_name), #_param, strlen(#_param)) == 0) \
+    if(strncmp((_name), #_param, strlen(_name)) == 0) \
         sscanf((_val), FMT_FLT, &(_parent)->_param); \
 } while(0)
 
 #define GET_PARAM_FLT2(_parent, _param, _name, _val) do { \
-    if(strncmp((_name), #_param, strlen(#_param)) == 0) \
+    if(strncmp((_name), #_param, strlen(_name)) == 0) \
         sscanf((_val), FMT_FLT2, &(_parent)->_param.x, &(_parent)->_param.y); \
 } while(0)
 
 #define GET_PARAM_FLT3(_parent, _param, _name, _val) do { \
-    if(strncmp((_name), #_param, strlen(#_param)) == 0) \
+    if(strncmp((_name), #_param, strlen(_name)) == 0) \
         sscanf((_val), FMT_FLT3, &(_parent)->_param.x, &(_parent)->_param.y, &(_parent)->_param.z); \
 } while(0)
 
@@ -110,26 +110,29 @@ static void load_param(char* line) {
 
     GET_PARAM_FLT3(game_state, water_entity.transform.scale, name, val);
 
-    GET_PARAM_U32 (game_state, seed,              name, val);
-    GET_PARAM_FLT (game_state, angle_seed,        name, val);
-    GET_PARAM_FLT (game_state, angle_offset,      name, val);
-    GET_PARAM_FLT (game_state, vertex_drag,       name, val);
-    GET_PARAM_FLT (game_state, speed_ramp,        name, val);
-    GET_PARAM_FLT3(game_state, water_color,       name, val);
-    GET_PARAM_FLT3(game_state, tip_color,         name, val);
-    GET_PARAM_FLT (game_state, tip_attenuation,   name, val);
-    GET_PARAM_FLT (game_state, specular_factor,   name, val);
-    GET_PARAM_FLT (game_state, specular_strength, name, val);
-    GET_PARAM_FLT (game_state, r0,                name, val);
-    GET_PARAM_FLT (game_state, ambient,           name, val);
-    GET_PARAM_FLT3(game_state, ambient_color,     name, val);
-    GET_PARAM_FLT3(game_state, sun.color,         name, val);
-    GET_PARAM_FLT2(game_state, sun.direction,     name, val);
-    GET_PARAM_FLT (game_state, sun.intensity,     name, val);
-    GET_PARAM_FLT (game_state, time_scale,        name, val);
-    GET_PARAM_FLT (game_state, scatter_amount,    name, val);
-    GET_PARAM_FLT3(game_state, scatter_color,     name, val);
-    GET_PARAM_FLT (game_state, scatter_angle,     name, val);
+    GET_PARAM_U32 (game_state, seed,                name, val);
+    GET_PARAM_FLT (game_state, angle_seed,          name, val);
+    GET_PARAM_FLT (game_state, angle_offset,        name, val);
+    GET_PARAM_FLT (game_state, vertex_drag,         name, val);
+    GET_PARAM_FLT (game_state, speed_ramp,          name, val);
+    GET_PARAM_FLT (game_state, normal_bias,         name, val);
+    GET_PARAM_FLT3(game_state, water_color,         name, val);
+    GET_PARAM_FLT3(game_state, tip_color,           name, val);
+    GET_PARAM_FLT (game_state, tip_attenuation,     name, val);
+    GET_PARAM_FLT (game_state, specular_factor,     name, val);
+    GET_PARAM_FLT (game_state, specular_strength,   name, val);
+    GET_PARAM_FLT (game_state, r0,                  name, val);
+    GET_PARAM_FLT (game_state, ambient,             name, val);
+    GET_PARAM_FLT3(game_state, ambient_color,       name, val);
+    GET_PARAM_FLT3(game_state, sun.color,           name, val);
+    GET_PARAM_FLT3(game_state, sun.direction,       name, val);
+    GET_PARAM_FLT (game_state, sun.intensity,       name, val);
+    GET_PARAM_FLT (game_state, time_scale,          name, val);
+    GET_PARAM_FLT (game_state, scatter_amount,      name, val);
+    GET_PARAM_FLT3(game_state, scatter_color,       name, val);
+    GET_PARAM_FLT (game_state, scatter_angle,       name, val);
+    GET_PARAM_FLT (game_state, env_normal_bias,     name, val);
+    GET_PARAM_FLT (game_state, reflection_strength, name, val);
 }
 
 void load_parameters_from_file(char* filepath, arena_s* arena) {
@@ -220,6 +223,7 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_FLT (data, game_state, angle_offset);
     SET_PARAM_FLT (data, game_state, vertex_drag);
     SET_PARAM_FLT (data, game_state, speed_ramp);
+    SET_PARAM_FLT (data, game_state, normal_bias);
     SET_PARAM_FLT3(data, game_state, water_color);
     SET_PARAM_FLT3(data, game_state, tip_color);
     SET_PARAM_FLT (data, game_state, tip_attenuation);
@@ -229,12 +233,14 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_FLT (data, game_state, ambient);
     SET_PARAM_FLT3(data, game_state, ambient_color);
     SET_PARAM_FLT3(data, game_state, sun.color);
-    SET_PARAM_FLT2(data, game_state, sun.direction);
+    SET_PARAM_FLT3(data, game_state, sun.direction);
     SET_PARAM_FLT (data, game_state, sun.intensity);
     SET_PARAM_FLT (data, game_state, time_scale);
     SET_PARAM_FLT (data, game_state, scatter_amount);
     SET_PARAM_FLT (data, game_state, scatter_angle);
     SET_PARAM_FLT3(data, game_state, scatter_color);
+    SET_PARAM_FLT (data, game_state, env_normal_bias);
+    SET_PARAM_FLT (data, game_state, reflection_strength);
 
     // write the collated data to the given file
     platform_write_to_file(filepath, data, strlen(data), false);

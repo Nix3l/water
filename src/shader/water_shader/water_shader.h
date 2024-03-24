@@ -31,6 +31,8 @@ typedef struct {
     GLuint seed;
 
     // FRAGMENT
+    GLuint normal_bias;
+
     GLuint light_dir;
     GLuint light_color;
     GLuint light_intensity;
@@ -52,6 +54,10 @@ typedef struct {
 
     GLuint ambient;
     GLuint ambient_color;
+
+    GLuint env_normal_bias;
+    GLuint reflection_strength;
+    GLuint environment;
 } water_shader_uniforms_s;
 
 typedef struct {

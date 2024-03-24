@@ -44,6 +44,9 @@ void render_water(entity_s* entity) {
 
     shader_start(&game_state->water_shader);
 
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, game_state->skybox.id);
+
     game_state->water_shader.load_uniforms(entity);
 
     if(game_state->water_renderer.render_wireframe)

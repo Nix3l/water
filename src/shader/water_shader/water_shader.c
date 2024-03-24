@@ -41,6 +41,8 @@ static void load_uniforms(void* data) {
     shader_load_uint(uniforms->seed, game_state->seed);
 
     // FRAGMENT SHADER
+    shader_load_float(uniforms->normal_bias, game_state->normal_bias);
+
     shader_load_vec3(uniforms->light_dir, game_state->sun.direction);
     shader_load_vec3(uniforms->light_color, game_state->sun.color);
     shader_load_float(uniforms->light_intensity, game_state->sun.intensity);
@@ -62,6 +64,10 @@ static void load_uniforms(void* data) {
 
     shader_load_float(uniforms->ambient, game_state->ambient);
     shader_load_vec3(uniforms->ambient_color, game_state->ambient_color);
+
+    shader_load_float(uniforms->env_normal_bias, game_state->env_normal_bias);
+    shader_load_float(uniforms->reflection_strength, game_state->reflection_strength);
+    shader_load_int(uniforms->environment, 0); // texture slot 0
 }
 
 void init_water_shader() {
@@ -98,6 +104,8 @@ void init_water_shader() {
     uniforms->seed              = shader_get_uniform(shader, "seed");
 
     // FRAGMENT SHADER
+    uniforms->normal_bias       = shader_get_uniform(shader, "normal_bias");
+
     uniforms->light_dir         = shader_get_uniform(shader, "light_dir");
     uniforms->light_color       = shader_get_uniform(shader, "light_color");
     uniforms->light_intensity   = shader_get_uniform(shader, "light_intensity");
@@ -119,4 +127,8 @@ void init_water_shader() {
 
     uniforms->ambient           = shader_get_uniform(shader, "ambient");
     uniforms->ambient_color     = shader_get_uniform(shader, "ambient_color");
+
+    uniforms->env_normal_bias     = shader_get_uniform(shader, "env_normal_bias");
+    uniforms->reflection_strength = shader_get_uniform(shader, "reflection_strength");
+    uniforms->environment         = shader_get_uniform(shader, "environment");
 }

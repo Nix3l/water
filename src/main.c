@@ -129,6 +129,8 @@ static void show_settings_window() {
 
     igSeparator();
 
+    igDragFloat("normal bias", &game_state->normal_bias, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+
     igDragFloat3("light direction", game_state->sun.direction.raw, 0.1f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("light color", game_state->sun.color.raw, ImGuiColorEditFlags_None);
     igDragFloat("light intensity", &game_state->sun.intensity, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
@@ -148,6 +150,9 @@ static void show_settings_window() {
     igDragFloat("scatter amount", &game_state->scatter_amount, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("scatter angle", &game_state->scatter_angle, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igColorEdit3("scatter color", game_state->scatter_color.raw, ImGuiColorEditFlags_None);
+
+    igDragFloat("environment normal bias", &game_state->env_normal_bias, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("environment reflection strength", &game_state->reflection_strength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
 
     igEnd();
 }
@@ -206,7 +211,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     void* memory = game_memory->permenant_storage + sizeof(game_state_s);
     usize remaining_memory = permenant_memory_to_allocate - sizeof(game_state_s);
     
-    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(8), &remaining_memory);
+    game_state->shader_arena = partition_permenant_memory(&memory, KILOBYTES(10), &remaining_memory);
     game_state->fbo_arena = partition_permenant_memory(&memory, KILOBYTES(1), &remaining_memory);
     game_state->params_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
     game_state->texture_arena = partition_permenant_memory(&memory, KILOBYTES(4), &remaining_memory);
@@ -277,7 +282,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
     game_state->r0 = 0.1f;
 
-    game_state->ambient = 0.24f;
+    game_state->ambient = 0.18f;
     game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
 
     init_skybox_renderer();
