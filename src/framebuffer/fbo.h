@@ -20,6 +20,8 @@ typedef struct {
     usize num_textures;
     fbo_texture_s* textures;
 
+    fbo_texture_s depth;
+
     GLenum* attachments;
 } fbo_s;
 
@@ -27,7 +29,10 @@ fbo_s create_fbo(u32 width, u32 height, usize num_textures);
 void destroy_fbo(fbo_s* fbo);
 
 void fbo_create_texture(fbo_s* fbo, GLenum attachment_type, GLint internal_format, GLenum format);
+void fbo_create_depth_texture(fbo_s* fbo);
 
 void fbo_copy_texture_to_screen(fbo_s* fbo, GLenum src_att);
+void fbo_copy_texture(fbo_s* src_fbo, fbo_s* dest_fbo, GLenum src_att);
+void fbo_copy_depth_texture(fbo_s* src, fbo_s* dest);
 
 #endif

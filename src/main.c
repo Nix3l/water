@@ -1,6 +1,5 @@
 // CURRENT:
-// TODO(nix3l): fix skybox
-// TODO(nix3l): set up environment reflections
+// TODO(nix3l): revamp fbo.c (make depth buffer + stencil buffer separate from list)
 // TODO(nix3l): add some fog and make the sun visible
 // TODO(nix3l): set up some post processing to make the scene look nicer
 
@@ -224,13 +223,14 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     // SHADERS
     init_skybox_shader();
     init_water_shader();
+    init_post_processing_shaders();
 
     game_state->seed = 71892;
 
-    game_state->speed_ramp      = 1.02f;
-    game_state->angle_seed      = 0.0f;
-    game_state->angle_offset    = 0.0f;
-    game_state->vertex_drag     = 1.0f;
+    game_state->speed_ramp   = 1.02f;
+    game_state->angle_seed   = 0.0f;
+    game_state->angle_offset = 0.0f;
+    game_state->vertex_drag  = 1.0f;
 
     for(usize i = 0; i < TOTAL_WAVES; i ++) {
         game_state->waves[i] = (wave_s) {
@@ -283,10 +283,11 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->r0 = 0.1f;
 
     game_state->ambient = 0.18f;
-    game_state->ambient_color = VECTOR_3(35.0f/255.0f, 174.0f/255.0f, 198.0f/255.0f);
+    game_state->ambient_color = VECTOR_RGB(35.0f, 174.0f, 198.0f);
 
     init_skybox_renderer();
     init_water_renderer();
+    init_pproc_renderer();
 
     // GUI
     init_imgui();
@@ -321,9 +322,12 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
 static void terminate_game() {
     destroy_mesh(&game_state->water_entity.mesh);
+    destroy_mesh(&game_state->pproc_renderer.screen_quad);
 
     destroy_fbo(&game_state->water_renderer.framebuffer);
+    destroy_fbo(&game_state->pproc_renderer.back_buffer);
     destroy_shader(&game_state->water_shader);
+    destroy_shader(&game_state->skybox_shader);
     
     shutdown_imgui();
     destroy_window();
@@ -342,6 +346,7 @@ int main(void) {
         update_camera(&game_state->camera);
         render_water(&game_state->water_entity);
         render_skybox(&game_state->skybox, &game_state->water_renderer.framebuffer);
+        render_post_processing(&game_state->water_renderer.framebuffer);
 
         fbo_copy_texture_to_screen(&game_state->water_renderer.framebuffer, GL_COLOR_ATTACHMENT0);
 

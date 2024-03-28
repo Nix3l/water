@@ -12,9 +12,11 @@
 #include "shader/shader.h"
 #include "shader/water_shader/water_shader.h"
 #include "shader/skybox_shader/skybox_shader.h"
+#include "shader/post_processing/post_processing_shader.h"
 #include "entity/entity.h"
 #include "render/water_renderer.h"
 #include "render/skybox_renderer.h"
+#include "render/pproc_renderer.h"
 #include "camera/camera.h"
 #include "light/light.h"
 
@@ -55,6 +57,9 @@ typedef struct {
 
     water_shader_uniforms_s water_shader_uniforms;
     shader_s water_shader;
+
+    pproc_shader_uniforms_s post_processing_shader_uniforms;
+    shader_s post_processing_shader;
     
     // WATER SHADER VARIABLES
     wave_s waves[TOTAL_WAVES];
@@ -100,6 +105,7 @@ typedef struct {
 
     skybox_renderer_s skybox_renderer;
     water_renderer_s water_renderer;
+    pproc_renderer_s pproc_renderer;
 
     // IMGUI
     struct ImGuiContext* imgui_ctx;

@@ -48,8 +48,6 @@ void init_skybox_renderer() {
 }
 
 void render_skybox(texture_s* cubemap, fbo_s* framebuffer) {
-    if(!cubemap) return;
-
     skybox_renderer_s* renderer = &game_state->skybox_renderer;
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->id);

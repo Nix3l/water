@@ -72,6 +72,33 @@ void fbo_create_texture(fbo_s* fbo, GLenum attachment_type, GLint internal_forma
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void fbo_create_depth_texture(fbo_s* fbo) {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo->id);
+
+    glGenTextures(1, &fbo->depth.id);
+    fbo->depth.attachment = GL_DEPTH_ATTACHMENT;
+    fbo->depth.internal_format = GL_DEPTH_COMPONENT32F;
+    fbo->depth.format = GL_DEPTH_COMPONENT;
+
+    glBindTexture(GL_TEXTURE_2D, fbo->depth.id);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, fbo->width, fbo->height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    // NOTE(nix3l): for now hard code these to GL_NEAREST
+    // in the future (if i reuse this code) i would want to
+    // have a way to set the texture parameters through a function
+    // to give even more control over them
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,   GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,   GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE,   GL_ALPHA);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, fbo->depth.id, 0);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void fbo_copy_texture_to_screen(fbo_s* fbo, GLenum src_att) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo->id);
@@ -81,6 +108,34 @@ void fbo_copy_texture_to_screen(fbo_s* fbo, GLenum src_att) {
     glBlitFramebuffer(0, 0, fbo->width, fbo->height, 
                       0, 0, game_state->window.width, game_state->window.height,
                       GL_COLOR_BUFFER_BIT,
+                      GL_LINEAR);
+    
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+void fbo_copy_texture(fbo_s* src, fbo_s* dest, GLenum src_att) {
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest->id);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, src->id);
+
+    glReadBuffer(src_att);
+
+    glBlitFramebuffer(0, 0, src->width, src->height, 
+                      0, 0, dest->width, dest->height,
+                      GL_COLOR_BUFFER_BIT,
+                      GL_LINEAR);
+    
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+void fbo_copy_depth_texture(fbo_s* src, fbo_s* dest) {
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dest->id);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, src->id);
+
+    glReadBuffer(GL_DEPTH_ATTACHMENT);
+
+    glBlitFramebuffer(0, 0, src->width, src->height, 
+                      0, 0, dest->width, dest->height,
+                      GL_DEPTH_BUFFER_BIT,
                       GL_LINEAR);
     
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

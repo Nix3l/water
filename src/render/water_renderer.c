@@ -8,7 +8,7 @@ void init_water_renderer() {
         .background_color = VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f),
         .shader = &game_state->water_shader,
         .render_wireframe = false,
-        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 2)
+        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 1)
     };
 
     // no transparency for now
@@ -17,10 +17,7 @@ void init_water_renderer() {
             GL_RGB16F,
             GL_RGB);
 
-    fbo_create_texture(&game_state->water_renderer.framebuffer,
-            GL_DEPTH_ATTACHMENT,
-            GL_DEPTH_COMPONENT32F,
-            GL_DEPTH_COMPONENT);
+    fbo_create_depth_texture(&game_state->water_renderer.framebuffer);
 }
 
 void render_water(entity_s* entity) {
@@ -36,6 +33,7 @@ void render_water(entity_s* entity) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

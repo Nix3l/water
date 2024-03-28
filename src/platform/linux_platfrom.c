@@ -36,6 +36,7 @@ char* platform_load_text_from_file(char* filename, usize* out_length, arena_s* a
     }
 
     char* output = arena_push(arena, length + 1);
+    MEM_ZERO(output, length + 1);
     usize read_length = fread(output, 1, length, file);
     if(read_length != length) {
         LOG_ERR("failed to read contents of [%s]: err %d\n%s\n", filename, errno, strerror(errno));
