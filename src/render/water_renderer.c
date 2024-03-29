@@ -8,17 +8,12 @@ void init_water_renderer() {
         .background_color = VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f),
         .shader = &game_state->water_shader,
         .render_wireframe = false,
-        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 2)
+        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 1)
     };
 
     // no transparency for now
     fbo_create_texture(&game_state->water_renderer.framebuffer,
             GL_COLOR_ATTACHMENT0, 
-            GL_RGB16F,
-            GL_RGB);
-
-    fbo_create_texture(&game_state->water_renderer.framebuffer,
-            GL_COLOR_ATTACHMENT1, 
             GL_RGB16F,
             GL_RGB);
 

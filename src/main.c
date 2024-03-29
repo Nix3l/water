@@ -1,8 +1,3 @@
-// CURRENT:
-// TODO(nix3l): revamp fbo.c (make depth buffer + stencil buffer separate from list)
-// TODO(nix3l): add some fog and make the sun visible
-// TODO(nix3l): set up some post processing to make the scene look nicer
-
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "game.h"
@@ -227,7 +222,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     game_state->mesh_arena = partition_permenant_memory(&memory, remaining_memory, &remaining_memory);
 
     // IO
-    create_window(1600, 900, "water");
+    create_window(1920, 1080, "water");
     init_input();
 
     // SHADERS
@@ -261,7 +256,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     // PARAMS FILE
-    strcpy(game_state->params_filepath, "ver4");
+    strcpy(game_state->params_filepath, "ver5");
 
     // RENDERER
     game_state->camera = (camera_s) {
@@ -332,12 +327,14 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
 
 static void terminate_game() {
     destroy_mesh(&game_state->water_entity.mesh);
+    destroy_mesh(&game_state->skybox_renderer.mesh);
     destroy_mesh(&game_state->pproc_renderer.screen_quad);
 
     destroy_fbo(&game_state->water_renderer.framebuffer);
     destroy_fbo(&game_state->pproc_renderer.back_buffer);
     destroy_shader(&game_state->water_shader);
     destroy_shader(&game_state->skybox_shader);
+    destroy_shader(&game_state->post_processing_shader);
     
     shutdown_imgui();
     destroy_window();

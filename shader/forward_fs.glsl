@@ -34,7 +34,6 @@ uniform float env_normal_bias;
 uniform samplerCube environment;
 
 out vec3 out_color;
-out vec3 out_position;
 
 float clamp01(float x) {
     return clamp(x, 0.0, 1.0);
@@ -90,6 +89,4 @@ void main(void) {
 
     // TODO(nix3l): why and how is this needed
     gl_FragDepth = 1.0 - gl_FragCoord.w;
-
-    out_position = fs_position;
 }
