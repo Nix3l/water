@@ -153,6 +153,16 @@ static void show_settings_window() {
     igDragFloat("environment normal bias", &game_state->env_normal_bias, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
     igDragFloat("environment reflection strength", &game_state->reflection_strength, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
 
+    igSeparator();
+
+    igDragFloat("fog distance", &game_state->fog_distance, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("fog ramp", &game_state->fog_ramp, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("fog attenuation", &game_state->fog_attenuation, 0.01f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igColorEdit3("fog color", game_state->fog_color.raw, ImGuiColorEditFlags_None);
+
+    igDragFloat("sun attenuation", &game_state->sun_attenuation, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+    igDragFloat("halo intensity", &game_state->halo_intensity, 0.1f, 0.0f, MAX_f32, "%.3f", ImGuiSliderFlags_None);
+
     igEnd();
 }
 
@@ -251,7 +261,7 @@ static void init_game_state(usize permenant_memory_to_allocate, usize transient_
     }
 
     // PARAMS FILE
-    strcpy(game_state->params_filepath, "ver3");
+    strcpy(game_state->params_filepath, "ver4");
 
     // RENDERER
     game_state->camera = (camera_s) {

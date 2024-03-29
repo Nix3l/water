@@ -133,6 +133,12 @@ static void load_param(char* line) {
     GET_PARAM_FLT (game_state, scatter_angle,       name, val);
     GET_PARAM_FLT (game_state, env_normal_bias,     name, val);
     GET_PARAM_FLT (game_state, reflection_strength, name, val);
+    GET_PARAM_FLT (game_state, fog_distance,        name, val);
+    GET_PARAM_FLT (game_state, fog_ramp,            name, val);
+    GET_PARAM_FLT (game_state, fog_attenuation,     name, val);
+    GET_PARAM_FLT3(game_state, fog_color,           name, val);
+    GET_PARAM_FLT (game_state, sun_attenuation,     name, val);
+    GET_PARAM_FLT (game_state, halo_intensity,      name, val);
 }
 
 void load_parameters_from_file(char* filepath, arena_s* arena) {
@@ -144,6 +150,7 @@ void load_parameters_from_file(char* filepath, arena_s* arena) {
 
     for(usize i = 0; i < num_lines; i ++) {
         char* line = lines[i];
+        if(strlen(line) == 0) continue;
 
         // wave blocks
         if(strncmp(line, WAVE_IDENTIFIER, strlen(WAVE_IDENTIFIER)) == 0) {
@@ -241,6 +248,12 @@ void write_parameters_to_file(char* filepath, arena_s* arena) {
     SET_PARAM_FLT3(data, game_state, scatter_color);
     SET_PARAM_FLT (data, game_state, env_normal_bias);
     SET_PARAM_FLT (data, game_state, reflection_strength);
+    SET_PARAM_FLT (data, game_state, fog_distance);
+    SET_PARAM_FLT (data, game_state, fog_ramp);
+    SET_PARAM_FLT (data, game_state, fog_attenuation);
+    SET_PARAM_FLT3(data, game_state, fog_color);
+    SET_PARAM_FLT (data, game_state, sun_attenuation);
+    SET_PARAM_FLT (data, game_state, halo_intensity);
 
     // write the collated data to the given file
     platform_write_to_file(filepath, data, strlen(data), false);

@@ -48,9 +48,11 @@ void render_post_processing(fbo_s* target_buffer) {
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, target_buffer->id);
 
+    // color
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, target_buffer->textures[0].id);
 
+    // depth
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, target_buffer->depth.id);
 

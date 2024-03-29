@@ -51,7 +51,7 @@ void render_skybox(texture_s* cubemap, fbo_s* framebuffer) {
     skybox_renderer_s* renderer = &game_state->skybox_renderer;
 
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->id);
-    glDrawBuffers(framebuffer->num_textures, framebuffer->attachments);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);

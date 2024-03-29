@@ -93,6 +93,14 @@ typedef struct {
     f32 env_normal_bias;
     f32 reflection_strength;
 
+    f32 fog_distance;
+    f32 fog_ramp;
+    f32 fog_attenuation;
+    v3f fog_color;
+
+    f32 sun_attenuation;
+    f32 halo_intensity;
+
     // TIME SCALE
     f32 time_scale;
 

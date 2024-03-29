@@ -8,12 +8,17 @@ void init_water_renderer() {
         .background_color = VECTOR_4(1.0f, 1.0f, 1.0f, 1.0f),
         .shader = &game_state->water_shader,
         .render_wireframe = false,
-        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 1)
+        .framebuffer = create_fbo(game_state->window.width, game_state->window.height, 2)
     };
 
     // no transparency for now
     fbo_create_texture(&game_state->water_renderer.framebuffer,
             GL_COLOR_ATTACHMENT0, 
+            GL_RGB16F,
+            GL_RGB);
+
+    fbo_create_texture(&game_state->water_renderer.framebuffer,
+            GL_COLOR_ATTACHMENT1, 
             GL_RGB16F,
             GL_RGB);
 
@@ -27,8 +32,7 @@ void render_water(entity_s* entity) {
 
     glDrawBuffers(framebuffer->num_textures, framebuffer->attachments);
 
-    v4f bg = renderer->background_color;
-    glClearColor(bg.x, bg.y, bg.z, bg.w);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_DEPTH_TEST);

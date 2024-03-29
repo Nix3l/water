@@ -3,6 +3,9 @@
 layout (location = 0) in vec3 vs_position;
 layout (location = 1) in vec2 vs_uvs;
 
+uniform mat4 projection;
+uniform mat4 view;
+
 out vec2 fs_uvs;
 
 void main(void) {

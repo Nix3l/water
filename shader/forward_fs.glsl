@@ -33,7 +33,8 @@ uniform float reflection_strength;
 uniform float env_normal_bias;
 uniform samplerCube environment;
 
-out vec4 out_color;
+out vec3 out_color;
+out vec3 out_position;
 
 float clamp01(float x) {
     return clamp(x, 0.0, 1.0);
@@ -85,8 +86,10 @@ void main(void) {
     float scatter_factor = clamp01(s * scatter_amount * clamp01(ndotl * 0.7 + 0.3)) * sa;
     color += scatter_factor * mix(scatter_color * vec3(1.0, 0.4, 0.0), scatter_color, light_color);
 
-    out_color = vec4(color, 1.0);
+    out_color = color;
 
     // TODO(nix3l): why and how is this needed
     gl_FragDepth = 1.0 - gl_FragCoord.w;
+
+    out_position = fs_position;
 }
