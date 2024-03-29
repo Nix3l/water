@@ -17,6 +17,13 @@ float get_depth() {
 }
 
 void main(void) {
-    // out_color = vec4(get_depth(), 0.0, 0.0, 1.0);
-    out_color = texture(scene_tex, fs_uvs);
+    vec3 color = vec3(0.0);
+    float depth = get_depth();
+
+    color += texture(scene_tex, fs_uvs).rgb;
+
+    // FOG
+    // TODO(nix3l)
+
+    out_color = vec4(color, 1.0);
 }

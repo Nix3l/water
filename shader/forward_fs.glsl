@@ -86,4 +86,7 @@ void main(void) {
     color += scatter_factor * mix(scatter_color * vec3(1.0, 0.4, 0.0), scatter_color, light_color);
 
     out_color = vec4(color, 1.0);
+
+    // TODO(nix3l): why and how is this needed
+    gl_FragDepth = 1.0 - gl_FragCoord.w;
 }
